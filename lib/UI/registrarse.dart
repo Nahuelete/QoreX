@@ -1,4 +1,4 @@
-// ignore_for_file: camel_case_types, use_key_in_widget_constructors, deprecated_member_use, avoid_print, curly_braces_in_flow_control_structures, unused_field, unused_element, use_build_context_synchronously, prefer_final_fields, unused_local_variable, unnecessary_string_interpolations, unrelated_type_equality_checks, invalid_use_of_protected_member, prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, control_flow_in_finally, unnecessary_null_comparison
+// ignore_for_file: camel_case_types, use_key_in_widget_constructors, deprecated_member_use, avoid_print, curly_braces_in_flow_control_structures, unused_field, unused_element, use_build_context_synchronously, prefer_final_fields, unused_local_variable, unnecessary_string_interpolations, unrelated_type_equality_checks, invalid_use_of_protected_member, prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, control_flow_in_finally, unnecessary_null_comparison, no_leading_underscores_for_local_identifiers, sort_child_properties_last
 
 import 'dart:async';
 import 'dart:convert';
@@ -10,6 +10,7 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:bluetooth/UI/ingreso.dart';
 import 'package:bluetooth/UI/iniciarSesion.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
+import 'package:bluetooth/main.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -188,6 +189,7 @@ class _registrarsePageState extends State<registrarsePage>
   FocusNode? _focusTelefono;
   FocusNode? _focusEmailTutor;
   FocusNode? _focusCode;
+  FocusNode? _focusAlias;
 
   // =====================================================
   // ================== CONTROLLERS ======================
@@ -216,6 +218,11 @@ class _registrarsePageState extends State<registrarsePage>
 
   /// Controller email tutor
   final TextEditingController _controllerEmailTutor = TextEditingController();
+
+  ///Configuraciones Adicionales
+
+  /// Controller alias
+  final TextEditingController _controllerAlias = TextEditingController();
 
   // =====================================================
   // ================== FOCUS LISTENERS ==================
@@ -333,6 +340,9 @@ class _registrarsePageState extends State<registrarsePage>
               telefonoUser = data["telefono"] ?? "";
               generoUser = data["genero"] ?? "";
               claveUser = data["clave"] ?? "";
+              aliasUser = data["alias"] ?? "";
+              cbuUser = data["cbu"] ?? "";
+              recordarme = data["recordarme"] ?? false;
               uidUser = data["uid"] ?? "";
               uidTutor = data["uid tutor"] ?? "";
               currentStep = data["paso"] ?? 0;
@@ -612,7 +622,7 @@ class _registrarsePageState extends State<registrarsePage>
       await FirebaseFirestore.instance
           .collection("TempUsers")
           .doc(codeUser)
-          .update({"dni": dniUser});
+          .set({"dni": dniUser}, SetOptions(merge: true));
 
       if (mounted) {
         setState(() {
@@ -1421,6 +1431,49 @@ class _registrarsePageState extends State<registrarsePage>
   // =====================================================
   // ================= TELEFONO =================
   // =====================================================
+
+  Future<void> verificarExistenciaTelefono() async {
+    final query = await FirebaseFirestore.instance
+        .collection("Usuarios")
+        .where("Telefono", isEqualTo: "+54 " + _controllerTelefono.text)
+        .limit(1)
+        .get();
+
+    String nombreAsociado = "";
+    String apellidoAsociado = "";
+    String avatarAsociado = "";
+    String inicialesAsociado = "";
+
+    if (query.docs.isNotEmpty) {
+      final data = query.docs.first.data();
+
+      setState(() {
+        nombreAsociado = data["Nombre"] ?? "";
+        apellidoAsociado = data["Apellido"] ?? "";
+        avatarAsociado = data["Avatar"] ?? "";
+      });
+
+      _focusTelefono!.unfocus();
+
+      setState(() {
+        cargando = false;
+      });
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => alertaTelefonoExistente(
+          telefono: _controllerTelefono.text,
+          nombre: nombreAsociado,
+          apellido: apellidoAsociado,
+          avatar: avatarAsociado,
+        ),
+      );
+    } else {
+      guardarTelefono(_controllerTelefono.text);
+    }
+  }
+
   Future<void> guardarTelefono(String telefono) async {
     // Formatear número: 2914057815 → 291-405-7815
     String telefonoFormateado = telefono;
@@ -1522,6 +1575,9 @@ class _registrarsePageState extends State<registrarsePage>
   // =====================================================
   // ================= REGISTRARSE =================
   // =====================================================
+  bool cargandoComenzar = false;
+  bool cargandoOpcionales = false;
+
   Future<void> generarCbuAlias() async {
     Random random = Random();
     cbuUser = '';
@@ -1885,7 +1941,8 @@ class _registrarsePageState extends State<registrarsePage>
 
     setState(() {
       //aliasUser = nameUser.replaceAll(" ", "").toLowerCase() + "." + palabra.toLowerCase();
-      aliasUser = palabra.toLowerCase() + "." + palabra2.toLowerCase();
+      aliasUser =
+          palabra.toLowerCase() + "." + palabra2.toLowerCase() + "." + "QX";
     });
   }
 
@@ -1907,6 +1964,30 @@ class _registrarsePageState extends State<registrarsePage>
     } catch (e) {
       print("Error al habilitar usuario: $e");
     }
+  }
+
+  Future<void> enviarNotificacionRegistrado() async {
+    final ahora = DateTime.now();
+    final fecha = DateFormat('dd-MM-yyyy').format(ahora);
+    final horaActual =
+        "${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}";
+
+    FirebaseFirestore.instance
+        .collection("Notificaciones")
+        .doc("Notificacion Registrado #$uidUser")
+        .set({
+          "Nombre": nombreUser,
+          "Apellido": apellidoUser,
+          "Uid": codeUser,
+          "Email": emailUser,
+          "Dni": dniUser,
+          "FechaTime": DateTime.now(),
+          "Fecha": fecha,
+          "Hora": horaActual,
+          "Involucra": [uidUser],
+          "Leida": {uidUser: false},
+          "Tipo": "Registrado",
+        });
   }
 
   String hashClave(String clave) {
@@ -1939,8 +2020,6 @@ class _registrarsePageState extends State<registrarsePage>
 
       final String claveHash = hashClave(claveUser);
 
-      print(uidUser);
-
       // Registrar usuario en Auth
       UserCredential? userCredential;
 
@@ -1959,10 +2038,12 @@ class _registrarsePageState extends State<registrarsePage>
 
       String banderaCode = codeUser;
 
-      // SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('codeUser', uidUser);
-      await prefs.setString('claveUser', claveUser);
+      if (cargandoComenzar == true) {
+        // SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('codeUser', uidUser);
+        await prefs.setString('claveUser', claveUser);
+      }
 
       // Habilitar Usuario
       await generarCbuAlias();
@@ -1990,6 +2071,8 @@ class _registrarsePageState extends State<registrarsePage>
         "Estado": "Habilitado",
       });
 
+      await enviarNotificacionRegistrado();
+
       registroOk = true;
 
       print("REGISTRO COMPLETADO");
@@ -2002,7 +2085,7 @@ class _registrarsePageState extends State<registrarsePage>
     } finally {
       if (!mounted) return;
 
-      if (registroOk) {
+      if (registroOk && cargandoComenzar) {
         await iniciarSesion();
 
         Vibration.vibrate(duration: 15);
@@ -2021,6 +2104,32 @@ class _registrarsePageState extends State<registrarsePage>
             .collection("TempUsers")
             .doc(codeUser)
             .delete();
+
+        setState(() {
+          cargandoComenzar = false;
+        });
+      } else if (registroOk && cargandoOpcionales) {
+        setState(() {
+          cargandoOpcionales = false;
+        });
+
+        FirebaseFirestore.instance
+            .collection("TempUsers")
+            .doc(codeUser)
+            .update({
+              "tema": "Oscuro",
+              "alias": aliasUser,
+              "cbu": cbuUser,
+              "recordarme": false,
+              "mostrar saldo": true,
+            });
+
+        avanzarPaso();
+
+        _focusAlias = FocusNode();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _focusEmailTutor!.requestFocus();
+        });
       }
 
       setState(() {
@@ -2231,7 +2340,6 @@ class _registrarsePageState extends State<registrarsePage>
   }
 
   Future<void> enviarNotificacionTutor(String uidTutor) async {
-    //TERMINAR
     final ahora = DateTime.now();
     final fecha = DateFormat('dd-MM-yyyy').format(ahora);
     final horaActual =
@@ -2251,7 +2359,7 @@ class _registrarsePageState extends State<registrarsePage>
           "Hora": horaActual,
           "Involucra": [uidTutor],
           "Leida": {uidTutor: false},
-          "Tipo": "Solicitud Tutor",
+          "Tipo": "Tutor Solicitado",
         });
   }
 
@@ -2268,6 +2376,57 @@ class _registrarsePageState extends State<registrarsePage>
     FirebaseFirestore.instance.collection("TempUsers").doc(codeUser).update({
       "uid": uidUser,
     });
+  }
+
+  // =====================================================
+  // ================= CONFIGURACIONES ADICIONALES =================
+  // =====================================================
+
+  // =====================================================
+  // ================= ALIAS =================
+  // =====================================================
+  bool aliasValido = false;
+  bool aliasExistente = false;
+  bool aliasCaractEspeciales = false;
+  String aliasNuevo = "";
+
+  bool aliasSinCaracteresEspeciales(String aliasBase) {
+    final regex = RegExp(r'^[a-zA-Z0-9]+$');
+    return regex.hasMatch(aliasBase);
+  }
+
+  Future<void> verificarExistenciaAlias() async {
+    FirebaseFirestore.instance
+        .collection("BusquedaUsers")
+        .doc(aliasNuevo)
+        .snapshots()
+        .listen((docSnapshot) async {
+          if (docSnapshot.exists) {
+            setState(() {
+              aliasExistente = true;
+            });
+          } else {
+            setState(() {
+              aliasExistente = false;
+            });
+          }
+        });
+  }
+
+  Future<void> guardarAlias(String alias) async {
+    setState(() {
+      aliasUser = alias;
+    });
+
+    FirebaseFirestore.instance.collection("TempUsers").doc(codeUser).update({
+      "alias": aliasUser,
+    });
+
+    setState(() {
+      cargando = false;
+    });
+
+    avanzarPaso();
   }
 
   // =====================================================
@@ -2440,6 +2599,7 @@ class _registrarsePageState extends State<registrarsePage>
                       currentStep == 6 ||
                       currentStep == 9 ||
                       currentStep == 12 ||
+                      currentStep == 13 ||
                       currentStep == 18 ||
                       currentStep == 19 ||
                       currentStep == 20 ||
@@ -2480,7 +2640,11 @@ class _registrarsePageState extends State<registrarsePage>
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        currentStep == 12 ? "Cuenta Creada" : "Crear Cuenta",
+                        currentStep == 12
+                            ? "Cuenta Creada"
+                            : currentStep > 12 && currentStep < 18
+                            ? "Configuracion Adicional"
+                            : "Crear Cuenta",
                         style: TextStyle(
                           fontSize: sp(18),
                           color: Colors.white,
@@ -2497,12 +2661,43 @@ class _registrarsePageState extends State<registrarsePage>
                             child: RichText(
                               text: TextSpan(
                                 style: TextStyle(
-                                  fontSize: sp(13),
+                                  fontSize: sp(10),
                                   fontFamily: "Poppins",
                                   color: Colors.grey,
                                 ),
                                 children: [
                                   TextSpan(text: "Te uniste a "),
+                                  TextSpan(
+                                    text: "Qore",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  TextSpan(
+                                    text: "X",
+                                    style: TextStyle(
+                                      color: Color.fromRGBO(1, 165, 113, 1),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : currentStep > 12 && currentStep < 18
+                      ? ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: w(300)),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: sp(10),
+                                  fontFamily: "Poppins",
+                                  color: Colors.grey,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: "Configura al 100% tu cuenta de ",
+                                  ),
                                   TextSpan(
                                     text: "Qore",
                                     style: TextStyle(color: Colors.white),
@@ -2525,7 +2720,7 @@ class _registrarsePageState extends State<registrarsePage>
                             child: RichText(
                               text: TextSpan(
                                 style: TextStyle(
-                                  fontSize: sp(13),
+                                  fontSize: sp(10),
                                   fontFamily: "Poppins",
                                   color: Colors.grey,
                                 ),
@@ -2617,6 +2812,8 @@ class _registrarsePageState extends State<registrarsePage>
                   ? crearClave(key: const ValueKey('clave'))
                   : currentStep == 12
                   ? registroFinalizado(key: const ValueKey('finalizado'))
+                  : currentStep == 13
+                  ? configurarAlias(key: const ValueKey('alias'))
                   : Container(),
             ),
           ],
@@ -5014,7 +5211,7 @@ class _registrarsePageState extends State<registrarsePage>
                   });
 
                   Future.delayed(const Duration(milliseconds: 1500), () {
-                    guardarTelefono(_controllerTelefono.text);
+                    verificarExistenciaTelefono();
                   });
                 },
               ),
@@ -5752,7 +5949,7 @@ class _registrarsePageState extends State<registrarsePage>
                   color: const Color.fromARGB(255, 0, 135, 92),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: !cargando
+                child: !cargandoComenzar
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -5786,13 +5983,15 @@ class _registrarsePageState extends State<registrarsePage>
                       ),
               ),
               onTap: () {
-                Vibration.vibrate(duration: 5);
+                if (cargandoOpcionales == false) {
+                  Vibration.vibrate(duration: 5);
 
-                setState(() {
-                  cargando = true;
-                });
+                  setState(() {
+                    cargandoComenzar = true;
+                  });
 
-                registrarse();
+                  registrarse();
+                }
               },
             ),
           ),
@@ -5811,24 +6010,395 @@ class _registrarsePageState extends State<registrarsePage>
                   border: Border.all(color: Colors.white.withOpacity(0.12)),
                 ),
                 child: Center(
-                  child: Text(
-                    "Configurar opciones ahora",
-                    style: TextStyle(
-                      fontSize: sp(15),
-                      fontFamily: "PoppinsBold",
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
+                  child: !cargandoOpcionales
+                      ? Text(
+                          "Configurar opciones ahora",
+                          style: TextStyle(
+                            fontSize: sp(15),
+                            fontFamily: "PoppinsBold",
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        )
+                      : Center(
+                          child: SizedBox(
+                            height: h(23),
+                            width: w(23),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 1,
+                            ),
+                          ),
+                        ),
                 ),
               ),
               onTap: () {
-                Vibration.vibrate(duration: 8);
-                // irConfiguracionesExtra();
+                if (cargandoComenzar == false) {
+                  Vibration.vibrate(duration: 5);
+
+                  setState(() {
+                    cargandoOpcionales = true;
+                  });
+
+                  registrarse();
+                }
               },
             ),
           ),
 
           SizedBox(height: h(20)),
+        ],
+      ),
+    );
+  }
+
+  //Configuraciones Adicionales
+  Widget configurarAlias({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    bool mantieneAliasActual = _controllerAlias.text.trim() == aliasUser;
+
+    bool _actualizandoAlias = false;
+    const String _sufijoAlias = ".QX";
+
+    return SafeArea(
+      key: key,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: h(40)),
+
+          /// PASO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.atSign,
+                  size: sp(15),
+                  color: Colors.white.withOpacity(0.45),
+                ),
+                SizedBox(width: w(5)),
+                Text(
+                  "Paso 1 de 4",
+                  style: TextStyle(
+                    fontSize: sp(12),
+                    fontFamily: "Poppins",
+                    color: Colors.white.withOpacity(0.45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h(10)),
+
+          /// INDICADOR
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: List.generate(4, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(right: w(8)),
+                  child: Container(
+                    width: w(32),
+                    height: h(4),
+                    decoration: BoxDecoration(
+                      color: index == 0
+                          ? const Color.fromRGBO(1, 165, 113, 1)
+                          : Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          SizedBox(height: h(36)),
+
+          /// TITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Alias de pago",
+              style: TextStyle(
+                fontSize: sp(23),
+                fontFamily: "PoppinsBold",
+                color: Colors.white,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(10)),
+
+          /// SUBTITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Este alias se usa para recibir pagos. Podés cambiarlo o seguir usando el actual.",
+              style: TextStyle(
+                fontSize: sp(15),
+                fontFamily: "Poppins",
+                color: Colors.white.withOpacity(0.55),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(28)),
+
+          /// USAR ALIAS ACTUAL (SELECCIONABLE)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.all(w(14)),
+                decoration: BoxDecoration(
+                  color: mantieneAliasActual
+                      ? const Color.fromRGBO(1, 165, 113, 0.12)
+                      : Colors.white.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(
+                    color: mantieneAliasActual && !_actualizandoAlias
+                        ? const Color.fromRGBO(1, 165, 113, 1)
+                        : Colors.white.withOpacity(0.08),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      mantieneAliasActual && !_actualizandoAlias
+                          ? LucideIcons.checkCircle
+                          : LucideIcons.circle,
+                      size: sp(18),
+                      color: mantieneAliasActual && !_actualizandoAlias
+                          ? const Color.fromRGBO(1, 165, 113, 1)
+                          : Colors.white.withOpacity(0.45),
+                    ),
+                    SizedBox(width: w(10)),
+                    Expanded(
+                      child: Text(
+                        "Seguir usando @$aliasUser",
+                        style: TextStyle(
+                          fontSize: sp(14),
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+                if (aliasValido == false && !_actualizandoAlias) {
+                  setState(() {
+                    _controllerAlias.text = aliasUser;
+                    aliasValido = true;
+                  });
+                } else {
+                  setState(() {
+                    _controllerAlias.clear();
+                    aliasValido = false;
+                  });
+                }
+              },
+            ),
+          ),
+
+          SizedBox(height: h(24)),
+
+          /// INPUT NUEVO ALIAS
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Container(
+              height: h(58),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(23, 27, 51, 1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.06)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: w(16)),
+                child: Row(
+                  children: [
+                    Icon(
+                      LucideIcons.edit3,
+                      size: sp(18),
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                    SizedBox(width: w(12)),
+                    Expanded(
+                      child: TextField(
+                        controller: _controllerAlias,
+                        focusNode: _focusAlias,
+                        autofocus: true,
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          fontSize: sp(15),
+                          fontFamily: "Poppins",
+                          color: Colors.white,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: aliasUser,
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.35),
+                          ),
+                          border: InputBorder.none,
+                        ),
+
+                        onTap: () {
+                          final text = _controllerAlias.text;
+                          if (text.endsWith(".QX")) {
+                            final limite = text.length - 3;
+                            if (_controllerAlias.selection.baseOffset >
+                                limite) {
+                              _controllerAlias.selection =
+                                  TextSelection.fromPosition(
+                                    TextPosition(offset: limite),
+                                  );
+                            }
+                          }
+                        },
+
+                        onChanged: (value) {
+                          if (_actualizandoAlias) return;
+                          _actualizandoAlias = true;
+
+                          const sufijo = ".QX";
+                          final controllerText = _controllerAlias.text;
+
+                          // 🔴 SI EL TEXTO YA ESTÁ CORRUPTO (".q", ".x", etc) → REPARAR
+                          if (controllerText.endsWith(".Q") ||
+                              controllerText.endsWith(".X") ||
+                              controllerText.endsWith(".")) {
+                            final limpio = controllerText.replaceAll(
+                              RegExp(r'\.Q$|\.X$|\.$'),
+                              '',
+                            );
+                            if (limpio.isEmpty) {
+                              _controllerAlias.clear();
+                              aliasValido = false;
+                            } else {
+                              _controllerAlias.text = "$limpio$sufijo";
+                              _controllerAlias.selection =
+                                  TextSelection.fromPosition(
+                                    TextPosition(offset: limpio.length),
+                                  );
+                            }
+                            _actualizandoAlias = false;
+                            return;
+                          }
+
+                          // Alias base real
+                          String base = value.replaceAll(sufijo, "");
+
+                          // 🧹 Si no queda alias → limpiar
+                          if (base.isEmpty) {
+                            _controllerAlias.clear();
+                            setState(() => aliasValido = false);
+                            _actualizandoAlias = false;
+                            return;
+                          }
+
+                          // 🔒 Reconstruir SIEMPRE desde base limpia
+                          _controllerAlias.text = "$base$sufijo";
+                          _controllerAlias.selection =
+                              TextSelection.fromPosition(
+                                TextPosition(offset: base.length),
+                              );
+
+                          setState(() {
+                            aliasCaractEspeciales =
+                                base.length >= 8 &&
+                                !RegExp(r'^[a-zA-Z0-9.]+$').hasMatch(base);
+                            aliasValido =
+                                base.length >= 8 && !base.contains(" ");
+                            aliasNuevo = _controllerAlias.text;
+                          });
+
+                          _actualizandoAlias = false;
+
+                          verificarExistenciaAlias();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Spacer(),
+
+          /// BOTÓN
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(54),
+                decoration: BoxDecoration(
+                  color:
+                      aliasValido &&
+                              !aliasExistente &&
+                              !aliasCaractEspeciales ||
+                          mantieneAliasActual
+                      ? const Color.fromRGBO(1, 165, 113, 1)
+                      : Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: !cargando
+                      ? Text(
+                          mantieneAliasActual
+                              ? "Continuar con este alias"
+                              : aliasExistente
+                              ? "Alias en uso"
+                              : !aliasValido
+                              ? "Minimo 8 caracteres"
+                              : aliasCaractEspeciales
+                              ? "No se permiten caracteres especiales"
+                              : "Guardar nuevo alias",
+                          style: TextStyle(
+                            fontSize: sp(16),
+                            fontFamily: "PoppinsBold",
+                            color: Colors.white,
+                          ),
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
+                ),
+              ),
+              onTap: aliasValido && !aliasExistente && !aliasCaractEspeciales
+                  ? () {
+                      Vibration.vibrate(duration: 5);
+
+                      setState(() {
+                        cargando = true;
+                      });
+
+                      Future.delayed(const Duration(milliseconds: 1500), () {
+                        guardarAlias(_controllerAlias.text);
+                      });
+                    }
+                  : null,
+            ),
+          ),
+
+          SizedBox(height: h(13)),
         ],
       ),
     );
@@ -6813,6 +7383,168 @@ class _registrarsePageState extends State<registrarsePage>
                     onTap: () {
                       Navigator.pop(context);
                       _focusEmail!.requestFocus();
+                    },
+                  ),
+                ),
+                SizedBox(width: w(12)),
+                Expanded(
+                  child: GestureDetector(
+                    child: Container(
+                      height: h(46),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: const Color.fromRGBO(1, 165, 113, 1),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Iniciar sesión",
+                          style: TextStyle(
+                            fontSize: sp(14),
+                            fontFamily: "PoppinsBold",
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.leftToRight,
+                          child: iniciarSesionPage(),
+                        ),
+                        (_) => false,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  //Telefono En Uso
+  Widget alertaTelefonoExistente({
+    required String telefono,
+    required String nombre,
+    required String apellido,
+    required String avatar,
+  }) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: w(24)),
+      child: Container(
+        padding: EdgeInsets.all(w(24)),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(18, 18, 18, 1),
+          borderRadius: BorderRadius.circular(23),
+          border: Border.all(color: Colors.white.withOpacity(0.06)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// ICONO
+            Center(
+              child: Container(
+                width: w(56),
+                height: w(56),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.orange.withOpacity(0.15),
+                ),
+                child: Icon(
+                  LucideIcons.alertTriangle,
+                  color: Colors.orangeAccent,
+                  size: sp(25),
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(20)),
+
+            /// TITULO
+            Center(
+              child: Text(
+                "Este teléfono ya está registrado",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: sp(18),
+                  fontFamily: "PoppinsBold",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(10)),
+
+            /// DESCRIPCIÓN
+            Center(
+              child: Text(
+                "El número ya está asociado a la cuenta de:",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: sp(14),
+                  fontFamily: "Poppins",
+                  color: Colors.white.withOpacity(0.6),
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(10)),
+
+            /// NOMBRE USUARIO
+            Center(
+              child: Text(
+                "$nombre $apellido",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: sp(16),
+                  fontFamily: "PoppinsBold",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(28)),
+
+            /// ACCIONES
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    child: Container(
+                      height: h(46),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.white.withOpacity(0.08),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Cancelar",
+                          style: TextStyle(
+                            fontSize: sp(14),
+                            fontFamily: "Poppins",
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _focusTelefono?.requestFocus();
                     },
                   ),
                 ),

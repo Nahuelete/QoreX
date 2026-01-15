@@ -104,7 +104,7 @@ class _SplashscreenState extends State<Splashscreen>
   Future<void> redireccionarUsuario() async {
     User? user = FirebaseAuth.instance.currentUser;
 
-    Future.delayed(Duration(milliseconds: 1500), () {
+    Future.delayed(Duration(milliseconds: 1800), () {
       Navigator.of(context).pushAndRemoveUntil(
         PageTransition(
           type: PageTransitionType.rightToLeft,
@@ -165,7 +165,7 @@ class _SplashscreenState extends State<Splashscreen>
 
   Future<void> a() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('codeUser', "68972");
+    await prefs.setString('codeUser', "98957");
   }
 
   @override
@@ -173,8 +173,6 @@ class _SplashscreenState extends State<Splashscreen>
     super.initState();
 
     _inicializar();
-
-    a();
 
     _controller = AnimationController(
       vsync: this,

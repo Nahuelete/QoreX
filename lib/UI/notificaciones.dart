@@ -1,6 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, camel_case_types, avoid_unnecessary_containers, avoid_print, unused_local_variable, body_might_complete_normally_nullable, deprecated_member_use, prefer_interpolation_to_compose_strings, unnecessary_string_interpolations, use_build_context_synchronously, constant_pattern_never_matches_value_type, prefer_adjacent_string_concatenation, unnecessary_brace_in_string_interps, await_only_futures, unnecessary_string_escapes
 
-import 'dart:math';
 import 'package:bluetooth/UI/aprobarTutoria.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,6 +66,7 @@ class _notificacionesPageState extends State<notificacionesPage>
   String deNoti = "";
   String deUidNoti = "";
   String deDniNoti = "";
+  String deEmailNoti = "";
   String AvatarEnviaNoti = "";
   String AvatarRecibeNoti = "";
   String paraNoti = "";
@@ -200,15 +200,35 @@ class _notificacionesPageState extends State<notificacionesPage>
                     } else {
                       print('No existe una tarjeta para este usuario.');
                     }
+                  });
 
-                    if (data["Pupilo"] != "") {
+              //Verificar Pupilos
+              FirebaseFirestore.instance
+                  .collection('Pupilos') // o la colección correcta
+                  .where('Tutor', isEqualTo: uidUser)
+                  .snapshots()
+                  .listen((querySnapshot) {
+                    if (querySnapshot.docs.isNotEmpty) {
                       if (!filtros.contains("Pupilo")) {
                         filtros.add("Pupilo");
                       }
                     } else {
-                      if (filtros.contains("Pupilo")) {
-                        filtros.remove("Pupilo");
+                      filtros.remove("Pupilo");
+                    }
+                  });
+
+              //Verificar Tutor
+              FirebaseFirestore.instance
+                  .collection('Pupilos') // o la colección correcta
+                  .where('Pupilo', isEqualTo: uidUser)
+                  .snapshots()
+                  .listen((querySnapshot) {
+                    if (querySnapshot.docs.isNotEmpty) {
+                      if (!filtros.contains("Tutor")) {
+                        filtros.add("Tutor");
                       }
+                    } else {
+                      filtros.remove("Tutor");
                     }
                   });
 
@@ -547,26 +567,6 @@ class _notificacionesPageState extends State<notificacionesPage>
         ),
       );
     });
-
-    /*
-    //Actualizar Notificacion
-    FirebaseFirestore.instance
-        .collection("Notificaciones")
-        .doc("Notificacion Solicitud Tutor #$id")
-        .update({"Estado": "Aceptado"});
-
-    //Actualizar TempUsers
-    FirebaseFirestore.instance
-        .collection("TempUsers")
-        .doc(id)
-        .update({"Paso": 21});
-
-    //Actualizar Usuario Tutor
-    FirebaseFirestore.instance
-        .collection("Usuarios")
-        .doc(uidUser)
-        .update({"Pupilo": doc[]});
-    */
   }
 
   void cancelarNotiListener() {
@@ -938,54 +938,72 @@ class _notificacionesPageState extends State<notificacionesPage>
             // 🔹 (Eliminado el sort aquí)
             List<QueryDocumentSnapshot> docs = snapshot.data!.docs;
 
+            //Cambiar numero por nombre de filtro
+            final filtroActivo = filtros[_paginaActual];
+
             // 🔹 Filtrar según pestaña
             List<QueryDocumentSnapshot> filtradas;
-            switch (_paginaActual) {
-              case 1: // Sin leer
+            switch (filtroActivo) {
+              case "Sin leer":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return ((data['Leida'] ?? {})[uidUser] ?? false) == false;
                 }).toList();
                 break;
-              case 2: // Solicitudes
+
+              case "Solicitudes":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return data['Tipo'].contains("Solicitud");
                 }).toList();
                 break;
-              case 3: // Ingresos
+
+              case "Ingresos":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
-                  final paraUidNoti = data['Para uid'] ?? "";
-                  final esIngreso = paraUidNoti == uidUser;
-                  return data['Tipo'].contains("Movimiento") && esIngreso;
+                  final paraUid = data['Para uid'] ?? "";
+                  return data['Tipo'].contains("Movimiento") &&
+                      paraUid == uidUser;
                 }).toList();
                 break;
-              case 4: // Egresos
+
+              case "Egresos":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
-                  final deUidNoti = data['De uid'] ?? "";
-                  final esEgreso = deUidNoti == uidUser;
-                  return data['Tipo'].contains("Movimiento") && esEgreso;
+                  final deUid = data['De uid'] ?? "";
+                  return data['Tipo'].contains("Movimiento") &&
+                      deUid == uidUser;
                 }).toList();
                 break;
-              case 5: //Tarjeta
+
+              case "Tarjeta":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return data['Tipo'].contains("Tarjeta");
                 }).toList();
-              case 6: //Extensiones
+                break;
+
+              case "Extensiones":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return data['Tipo'].contains("Extension");
                 }).toList();
                 break;
-              case 7: //Tutor
+
+              case "Tutor":
+                filtradas = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return data['Tipo'].contains("Pupilo");
+                }).toList();
+                break;
+
+              case "Pupilo":
                 filtradas = docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return data['Tipo'].contains("Tutor");
                 }).toList();
                 break;
+
               default: // Todas
                 filtradas = docs;
             }
@@ -1300,10 +1318,29 @@ class _notificacionesPageState extends State<notificacionesPage>
                   utilitario = data['Utilitario'] == uidUser;
                 }
 
-                if (tipoNoti == "Solicitud Tutor") {
+                if (tipoNoti == "Tutor Solicitado") {
                   deNoti = data['De'] ?? "";
                   deUidNoti = data['De uid'] ?? "";
                   deDniNoti = data['Dni'] ?? "";
+                  estadoNoti = data['Estado'] ?? "";
+                  fechaNoti = data['Fecha'] ?? "";
+                  horaNoti = data['Hora'] ?? "";
+                  leido = (data['Leida'] ?? {})[uidUser] ?? false;
+                }
+
+                if (tipoNoti == "Pupilo Aceptado") {
+                  deNoti = "${data['Nombre'] ?? ""} ${data['Apellido'] ?? ""}";
+                  deUidNoti = data['Uid'] ?? "";
+                  fechaNoti = data['Fecha'] ?? "";
+                  horaNoti = data['Hora'] ?? "";
+                  leido = (data['Leida'] ?? {})[uidUser] ?? false;
+                }
+
+                if (tipoNoti == "Registrado") {
+                  deNoti = data['Nombre'] ?? "";
+                  deUidNoti = data['Uid'] ?? "";
+                  deDniNoti = data['Dni'] ?? "";
+                  deEmailNoti = data['Email'] ?? "";
                   estadoNoti = data['Estado'] ?? "";
                   fechaNoti = data['Fecha'] ?? "";
                   horaNoti = data['Hora'] ?? "";
@@ -1395,8 +1432,12 @@ class _notificacionesPageState extends State<notificacionesPage>
                     return utilitario
                         ? widgetExtensionLimiteEliminadoUtilitario(doc, data)
                         : widgetExtensionLimiteEliminadoTitular(doc, data);
-                  case "Solicitud Tutor":
+                  case "Tutor Solicitado":
                     return widgetSolicitudTutor(doc, data);
+                  case "Pupilo Aceptado":
+                    return widgetPupiloAprobado(doc, data);
+                  case "Registrado":
+                    return widgetBienvenidaRegistro(doc, data);
                   default:
                     return ListTile(
                       leading: Icon(Icons.notifications, color: Colors.white60),
@@ -10808,7 +10849,7 @@ class _notificacionesPageState extends State<notificacionesPage>
                             ),
                           ),
                           child: Text(
-                            "Aprobar",
+                            "Ir a aprobar",
                             style: TextStyle(
                               fontFamily: "PoppinsBold",
                               fontSize: sp(13),
@@ -10852,6 +10893,487 @@ class _notificacionesPageState extends State<notificacionesPage>
                       ),
                     ),
                   ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget widgetPupiloAprobado(doc, data) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    final String nombreTutor = data["NombreTutor"] ?? "Tu tutor";
+    final String avatarTutor = data["AvatarTutor"] ?? "";
+
+    return SlideTransition(
+      position: _offsetAnimationAparicion,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        offset: _offset,
+        child: Slidable(
+          enabled: true,
+          key: ValueKey(doc.id),
+          endActionPane: ActionPane(
+            motion: DrawerMotion(),
+            dismissible: DismissiblePane(
+              onDismissed: () {
+                Vibration.vibrate(duration: 15);
+                setState(() => indexNoti = doc.id);
+                eliminarNotificacion();
+              },
+            ),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  Vibration.vibrate(duration: 15);
+                  setState(() => indexNoti = doc.id);
+                  eliminarNotificacion();
+                },
+                backgroundColor: Colors.transparent,
+                icon: Icons.delete,
+                label: 'Borrar',
+              ),
+            ],
+          ),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF101827),
+              borderRadius: BorderRadius.circular(23),
+              border: Border(
+                left: BorderSide(
+                  color: const Color.fromRGBO(1, 165, 113, 1),
+                  width: leido ? w(1) : w(8),
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(2, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(23),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// AVATAR / ICONO TUTOR
+                      Container(
+                        width: w(33),
+                        height: h(33),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color.fromRGBO(
+                                1,
+                                165,
+                                113,
+                                1,
+                              ).withOpacity(0.6),
+                              Colors.green.shade700,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: avatarTutor.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  avatarTutor,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Icon(
+                                LucideIcons.heartHandshake,
+                                color: Colors.white,
+                                size: sp(20),
+                              ),
+                      ),
+                      SizedBox(width: w(13)),
+
+                      /// CONTENIDO
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// TITULO + TIEMPO
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Cuenta aprobada",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Poppins",
+                                    fontSize: sp(15),
+                                  ),
+                                ),
+                                Text(
+                                  textoTiempo,
+                                  style: TextStyle(
+                                    color: Colors.white60,
+                                    fontFamily: "Poppins",
+                                    fontSize: sp(13),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: h(8)),
+
+                            /// MENSAJE
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: sp(13),
+                                  height: 1.45,
+                                  color: Colors.white.withOpacity(0.65),
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: "Tu cuenta fue aprobada por ",
+                                  ),
+                                  TextSpan(
+                                    text: deNoti,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: "Poppins",
+                                    ),
+                                  ),
+                                  const TextSpan(
+                                    text: ", quien ahora es tu tutor.",
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: h(23)),
+
+                            /// BLOQUE INFO
+                            Container(
+                              width: w(233),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color.fromRGBO(33, 47, 67, 1),
+                                    Color.fromRGBO(15, 28, 45, 1),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.08),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: h(18),
+                                  horizontal: w(18),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.shieldCheck,
+                                      color: const Color.fromRGBO(
+                                        1,
+                                        165,
+                                        113,
+                                        1,
+                                      ),
+                                      size: sp(18),
+                                    ),
+                                    SizedBox(width: w(10)),
+                                    Expanded(
+                                      child: Text(
+                                        "Ya podés usar todas las funciones",
+                                        style: TextStyle(
+                                          color: Colors.white60,
+                                          fontFamily: "Poppins",
+                                          fontSize: sp(13),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  /// MARCAR COMO LEÍDO
+                  if (!leido)
+                    GestureDetector(
+                      onTap: () {
+                        Vibration.vibrate(duration: 5);
+                        marcarNotificacionLeidaUnitaria(doc);
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: h(23), right: w(13)),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(
+                              LucideIcons.checkCheck,
+                              color: const Color.fromRGBO(1, 165, 113, 1),
+                              size: sp(15),
+                            ),
+                            SizedBox(width: w(8)),
+                            Text(
+                              "Marcar como leído",
+                              style: TextStyle(
+                                color: const Color.fromRGBO(1, 165, 113, 1),
+                                fontSize: sp(13),
+                                fontFamily: "PoppinsBold",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget widgetBienvenidaRegistro(doc, data) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SlideTransition(
+      position: _offsetAnimationAparicion,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        offset: _offset,
+        child: Slidable(
+          enabled: true,
+          key: ValueKey(doc.id),
+          endActionPane: ActionPane(
+            motion: DrawerMotion(),
+            dismissible: DismissiblePane(
+              onDismissed: () {
+                Vibration.vibrate(duration: 15);
+                setState(() => indexNoti = doc.id);
+                eliminarNotificacion();
+              },
+            ),
+            children: [
+              SlidableAction(
+                onPressed: (context) {
+                  Vibration.vibrate(duration: 15);
+                  setState(() => indexNoti = doc.id);
+                  eliminarNotificacion();
+                },
+                backgroundColor: Colors.transparent,
+                icon: Icons.delete,
+                label: 'Borrar',
+              ),
+            ],
+          ),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF101827),
+              borderRadius: BorderRadius.circular(23),
+              border: Border(
+                left: BorderSide(
+                  color: const Color.fromRGBO(1, 165, 113, 1),
+                  width: leido ? w(1) : w(8),
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(2, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(23),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// ICONO
+                      Container(
+                        width: w(53),
+                        height: h(53),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Image.asset(
+                          "assets/logoApp.png",
+                          height: h(53),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      SizedBox(width: w(13)),
+
+                      /// CONTENIDO
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// TITULO + TIEMPO
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "¡Bienvenido a QoreX!",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "Poppins",
+                                    fontSize: sp(15),
+                                  ),
+                                ),
+                                Text(
+                                  textoTiempo,
+                                  style: TextStyle(
+                                    color: Colors.white60,
+                                    fontFamily: "Poppins",
+                                    fontSize: sp(13),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: h(8)),
+
+                            /// MENSAJE
+                            Text(
+                              "$deNoti, tu cuenta fue creada correctamente y ya podés comenzar a usar la app.",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.65),
+                                fontFamily: "Poppins",
+                                fontSize: sp(13),
+                                height: 1.45,
+                              ),
+                            ),
+
+                            SizedBox(height: h(23)),
+
+                            /// BLOQUE INFO
+                            Container(
+                              width: w(233),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color.fromRGBO(33, 47, 67, 1),
+                                    Color.fromRGBO(15, 28, 45, 1),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.08),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: h(18),
+                                  horizontal: w(18),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.checkCircle,
+                                      color: const Color.fromRGBO(
+                                        1,
+                                        165,
+                                        113,
+                                        1,
+                                      ),
+                                      size: sp(18),
+                                    ),
+                                    SizedBox(width: w(10)),
+                                    Expanded(
+                                      child: Text(
+                                        "Registro completado con éxito",
+                                        style: TextStyle(
+                                          color: Colors.white60,
+                                          fontFamily: "Poppins",
+                                          fontSize: sp(13),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  /// MARCAR COMO LEÍDO
+                  if (!leido)
+                    GestureDetector(
+                      onTap: () {
+                        Vibration.vibrate(duration: 5);
+                        marcarNotificacionLeidaUnitaria(doc);
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(top: h(23), right: w(13)),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(
+                              LucideIcons.checkCheck,
+                              color: const Color.fromRGBO(1, 165, 113, 1),
+                              size: sp(15),
+                            ),
+                            SizedBox(width: w(8)),
+                            Text(
+                              "Marcar como leído",
+                              style: TextStyle(
+                                color: const Color.fromRGBO(1, 165, 113, 1),
+                                fontSize: sp(13),
+                                fontFamily: "PoppinsBold",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:page_transition/page_transition.dart';
@@ -45,7 +46,7 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
   String fechaNacimientoPupilo = "";
 
   //Datos User
-  String uiduser = "";
+  String uidUser = "";
 
   String nombreUser = "";
 
@@ -53,7 +54,7 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
 
   Future<void> leerShared() async {
     final prefs = await SharedPreferences.getInstance();
-    uiduser = prefs.getString('codeUser') ?? "";
+    uidUser = prefs.getString('codeUser') ?? "";
   }
 
   Future<void> obtenerDatos() async {
@@ -61,7 +62,7 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
 
     FirebaseFirestore.instance
         .collection("Usuarios")
-        .doc(uiduser)
+        .doc(uidUser)
         .snapshots()
         .listen((docSnapshot) async {
           if (docSnapshot.exists) {
@@ -69,9 +70,8 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
                 docSnapshot.data() as Map<String, dynamic>;
 
             setState(() {
-              nombreUser = data["nombre"] ?? "";
-              apellidoUser = data["apellido"] ?? "";
-              uiduser = data["Uid"] ?? "";
+              nombreUser = data["Nombre"] ?? "";
+              apellidoUser = data["Apellido"] ?? "";
             });
           }
         });
@@ -354,6 +354,28 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
         "${fecha18.year}";
   }
 
+  Future<void> enviarNotificacionPupilo() async {
+    final ahora = DateTime.now();
+    final fecha = DateFormat('dd-MM-yyyy').format(ahora);
+    final horaActual =
+        "${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}";
+
+    FirebaseFirestore.instance
+        .collection("Notificaciones")
+        .doc("Notificacion Tutor Aceptado #$uidPupilo")
+        .set({
+          "Nombre": nombreUser,
+          "Apellido": apellidoUser,
+          "Uid": uidUser,
+          "FechaTime": DateTime.now(),
+          "Fecha": fecha,
+          "Hora": horaActual,
+          "Involucra": [uidPupilo],
+          "Leida": {uidPupilo: false},
+          "Tipo": "Tutor Aceptado",
+        });
+  }
+
   Future<void> habilitarPupilo() async {
     final fecha = calcularFechaVencimiento(fechaNacimientoPupilo);
 
@@ -370,10 +392,13 @@ class _aprobarTutoriaPageState extends State<aprobarTutoriaPage>
         .update({"paso": 21});
 
     //Agregar Pupilo
-    FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection("Pupilos")
         .doc("Pupilo #$uidPupilo")
-        .set({"Tutor": uiduser, "Pupilo": uidPupilo, "Vencimiento": fecha});
+        .set({"Tutor": uidUser, "Pupilo": uidPupilo, "Vencimiento": fecha});
+
+    //Notificacion Pupilo
+    await enviarNotificacionPupilo();
   }
 
   @override
