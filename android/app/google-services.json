@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "395322066644",
+    "firebase_url": "https://arduino-esp32-df250-default-rtdb.firebaseio.com",
+    "project_id": "arduino-esp32-df250",
+    "storage_bucket": "arduino-esp32-df250.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395322066644:android:0ddb031c0e4b3e2f205d41",
+        "android_client_info": {
+          "package_name": "com.example.bluetooth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaUXGvo9BL4_yyILHa_rey73sbNE0zpbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395322066644:android:cb21b3915602bb9c205d41",
+        "android_client_info": {
+          "package_name": "com.example.wifi_arduino"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaUXGvo9BL4_yyILHa_rey73sbNE0zpbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

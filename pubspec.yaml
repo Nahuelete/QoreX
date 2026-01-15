@@ -1,0 +1,150 @@
+name: bluetooth
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  firebase_auth: ^6.0.2
+  firebase_core: ^4.1.0
+  firebase_database: ^12.0.1
+  flutter:
+    sdk: flutter
+  flutter_blue_plus: ^1.35.5
+  flutter_bluetooth_serial: ^0.4.0
+  flutter_svg: ^2.2.1
+  flutter_svg_provider: ^1.0.7
+  intl: ^0.20.2
+  lucide_icons: ^0.257.0
+  shared_preferences: ^2.5.3
+  custom_dots_indicator: ^1.0.2
+  smooth_page_indicator: ^1.2.1
+  timeline_tile: ^2.0.0
+  r_nav_n_sheet: ^1.1.0
+  lottie: ^3.3.1
+  another_flushbar: ^1.12.32
+  fluttertoast: ^8.2.12
+  pin_code_fields: ^8.0.1
+  camera: ^0.11.0+2
+  google_ml_kit: ^0.19.0
+  google_mlkit_text_recognition: ^0.14.0
+  audioplayers: ^6.5.1
+  speech_to_text: ^6.6.0
+  local_auth: ^2.1.7
+  permission_handler: ^12.0.1
+  cloud_firestore: ^6.0.1
+  flutter_secure_storage: ^9.2.4
+  http: ^1.5.0
+  share_plus: ^12.0.0
+  qr_flutter: ^4.1.0
+  path_provider: ^2.1.5
+  image_gallery_saver: ^2.0.3
+  flutter_slidable: ^4.0.1
+  glassmorphism_ui: ^0.3.0
+  page_transition: ^2.2.1
+  mobile_scanner: ^7.1.2
+  swipeable_button_view: ^0.0.2
+  flutter_screenutil: ^5.9.3
+  auto_size_text: ^3.0.0
+  responsive_framework: ^1.5.1
+  screenshot: ^3.0.0
+  torch_light: ^1.1.0
+  vibration: ^3.1.4
+  device_info_plus: ^10.1.0
+  device_preview: ^1.3.1
+  flip_card: ^0.7.0
+  sliding_up_panel: ^2.0.0+1
+  iconsax: ^0.0.8
+  flutter_multi_formatter: ^2.13.10
+  flutter_native_splash: ^2.4.7
+  phone_numbers_parser: ^9.0.18
+  bcrypt: ^1.1.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter_native_splash:
+  color: "#030519"  # Tu color oscuro
+  #image: assets/splash_logo.png  # Agregá tu logo aquí
+  fullscreen: false
+  android: true
+  ios: true
+  ios_content_mode: scaleToFill  # ¡Clave para iOS! Evita flash y llena la pantalla
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/topography.svg
+    - assets/fondoTarjeta.svg
+    - assets/architect.svg
+    - assets/texture.svg
+    - assets/overlapping-circles.svg
+    - assets/awaitPay.json
+    - assets/paySuccess.json
+    - assets/sendEmailChange.json
+    - assets/yaPagaste.json
+    - assets/escanDniComplete.json
+    - assets/tarjetaPresentacion.json
+    - assets/solicitudTarjeta.json
+    - assets/solicitudTarjetaRealizada.json
+    - assets/reciboQrFinalizado.json
+    - assets/cargando.json
+    - assets/scanFaceComplete.json
+    - assets/linkConect.json
+    - assets/cargandoConexion.json
+    - assets/muestraScanDni.json
+    - assets/muestraScanFace.json
+    - assets/descargandoRecibo.json
+    - assets/passwordChange.json
+    - assets/sinNotificaciones.json
+    - assets/pagoRealizadoVerde.json
+    - assets/pagoRealizadoAzul.json
+    - assets/pagoRealizadoVioleta.json
+    - assets/animDesmarcarFavorito.json
+    - assets/animMarcarFavorito.json
+    - assets/congeladaSheetAnim.json
+    - assets/unlockFaceID.json
+    - assets/awaitUnlockFaceID.json
+    - assets/tarjetaActivadaAnim.json
+    - assets/activarTarjetaAnim.json
+    - assets/audios/step1Audio.mp3
+    - assets/audios/step2Audio.mp3
+    - assets/audios/pagoCompletado.mp3
+    - assets/audios/step3Audio.mp3
+    - assets/audios/stepFinalizadoAudio.mp3
+    - assets/audios/stepErrorAudio.mp3
+    - assets/audios/stepAcercateAudio.mp3
+    - assets/audios/stepAlejateAudio.mp3
+    - assets/audios/pip.mp3
+    - assets/avatar2.png
+    - assets/avatar3.png
+    - assets/avatar4.png
+    - assets/avatar5.png
+    - assets/avatar6.png
+    - assets/avatar7.png
+    - assets/imgPresentacion1.png
+    - assets/imgPresentacion2.png
+    - assets/imgPresentacion3.png
+    - assets/logoApp.png
+    - assets/logoAppCompleto.png
+    - assets/imgMasculino.png
+    - assets/imgFemenino.png
+    - assets/imgOtroGenero.png
+
+  fonts:
+    - family: PoppinsBold
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
+
+    - family: PoppinsNormal
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Light.ttf
