@@ -85,11 +85,27 @@ class _bloqueadoPageState extends State<bloqueadoPage> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
-        ),
+        gradient: temaUser == "Oscuro"
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromRGBO(3, 5, 25, 1),
+                  Color.fromRGBO(13, 20, 40, 1),
+                ],
+              )
+            : LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromARGB(255, 237, 235, 235),
+                  Color.fromARGB(255, 237, 235, 235),
+                ],
+                stops: const [
+                  0.01, // solo 1% verde arriba
+                  1.0, // 95% blanco
+                ],
+              ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
