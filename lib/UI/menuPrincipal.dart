@@ -7,7 +7,6 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:bluetooth/UI/activarTarjeta.dart';
 import 'package:bluetooth/UI/configurarExtensioncompartida.dart';
 import 'package:bluetooth/UI/confirmacionPago.dart';
-import 'package:bluetooth/UI/inicio.dart';
 import 'package:bluetooth/UI/miTarjeta.dart';
 import 'package:bluetooth/UI/notificaciones.dart';
 import 'package:bluetooth/UI/recibir.dart';
@@ -44,10 +43,6 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
   //Perdida Foco App
   bool _isAppInactive = false;
   // Perdida Foco App
-
-  //Index Pages
-  int indexPage = 0;
-  //Fin Index Pages
 
   bool distorcion = false;
 
@@ -1429,36 +1424,33 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                 ],
               ),
             ),
-            bottomNavigationBar: Builder(
-              key: ValueKey(indexPage),
-              builder: (context) {
-                return Visibility(
+            bottomNavigationBar: Visibility(
                   visible: true,
                   child: RNavNSheet(
-                    initialSelectedIndex: indexPage,
-                    onTap: (indexPage) async {
-                      if (indexPage == 0) {
+                initialSelectedIndex: 0,
+                onTap: (index) async {
+                  if (index == 0) {
                         print("Inicio");
                         Vibration.vibrate(duration: 5);
                         setState(() {
                           inicioPageVis = true;
                         });
                       }
-                      if (indexPage == 1) {
+                  if (index == 1) {
                         print("Historial");
                         Vibration.vibrate(duration: 5);
                         setState(() {
                           inicioPageVis = false;
                         });
                       }
-                      if (indexPage == 2) {
+                  if (index == 2) {
                         print("Favoritos");
                         Vibration.vibrate(duration: 5);
                         setState(() {
                           inicioPageVis = false;
                         });
                       }
-                      if (indexPage == 3) {
+                  if (index == 3) {
                         print("Perfil");
                         Vibration.vibrate(duration: 5);
                         cerrarSesion();
@@ -1472,6 +1464,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                             ),
                           );
                         });
+
                         setState(() {
                           inicioPageVis = false;
                         });
@@ -1520,9 +1513,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                         label: "",
                       ),
                     ],
-                  ),
-                );
-              },
+              ),
             ),
             body: Stack(children: [SizedBox(child: inicioPage())]),
           ),
