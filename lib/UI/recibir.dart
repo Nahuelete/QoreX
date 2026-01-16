@@ -773,128 +773,134 @@ class _recibirPageState extends State<recibirPage>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: (distorcionVis ? Colors.black : Colors.transparent),
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Visibility(
-            visible: !distorcionVis,
-            child: Row(
-              children: [
-                SizedBox(width: w(13)),
-                GestureDetector(
-                  child: Container(
-                    width: w(40),
-                    height: h(40),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromRGBO(1, 165, 113, 1),
-                          Colors.green.shade600,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(LucideIcons.arrowLeft, color: Colors.white),
-                  ),
-                  onTap: () {
-                    Vibration.vibrate(duration: 5);
-                    FocusScope.of(context).unfocus();
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: MenuPrincipalPage(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(width: w(10)),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: w(300)),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          "Recibir Dinero",
-                          style: TextStyle(
-                            fontSize: sp(18),
-                            color: Colors.white,
-                            fontFamily: "PoppinsBold",
-                          ),
-                        ),
-                      ),
-                    ),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: w(300)),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          "Elige cómo quieres recibir pagos",
-                          style: TextStyle(
-                            fontSize: sp(13),
-                            color: Colors.grey,
-                            fontFamily: "Poppins",
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            // 🔹 Icono animado
-            Visibility(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: AppBar(
+            //Modificar system tema
+            backgroundColor: (distorcionVis
+                ? Colors.black
+                : Colors.transparent),
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Visibility(
               visible: !distorcionVis,
-              child: AnimatedSlide(
-                duration: Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                offset: _showIcon ? Offset.zero : Offset(0, 5),
-                child: IconButton(
-                  color: Colors.white60,
-                  icon: Icon(LucideIcons.arrowUp),
-                  onPressed: () async {
-                    Vibration.vibrate(duration: 5);
-                    FocusScope.of(context).unfocus();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_scrollController.hasClients) {
-                        if (palabraSeleccionada == "Solicitud a Usuario") {
-                          _scrollController.animateTo(
-                            1486,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        } else if (palabraSeleccionada == "Vinculación") {
-                          _scrollController.animateTo(
-                            1028,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        } else if (palabraSeleccionada == "Código QR") {
-                          _scrollController.animateTo(
-                            1028,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        } else {
-                          _scrollController.animateTo(
-                            975,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        }
-                      }
-                    });
-                  },
-                ),
+              child: Row(
+                children: [
+                  SizedBox(width: w(13)),
+                  GestureDetector(
+                    child: Container(
+                      width: w(40),
+                      height: h(40),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(1, 165, 113, 1),
+                            Colors.green.shade600,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(LucideIcons.arrowLeft, color: Colors.white),
+                    ),
+                    onTap: () {
+                      Vibration.vibrate(duration: 5);
+                      FocusScope.of(context).unfocus();
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child: MenuPrincipalPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(width: w(10)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: w(300)),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            "Recibir Dinero",
+                            style: TextStyle(
+                              fontSize: sp(18),
+                              color: Colors.white,
+                              fontFamily: "PoppinsBold",
+                            ),
+                          ),
+                        ),
+                      ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: w(300)),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            "Elige cómo quieres recibir pagos",
+                            style: TextStyle(
+                              fontSize: sp(13),
+                              color: Colors.grey,
+                              fontFamily: "Poppins",
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            SizedBox(width: w(13)),
-          ],
+            actions: [
+              // 🔹 Icono animado
+              Visibility(
+                visible: !distorcionVis,
+                child: AnimatedSlide(
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  offset: _showIcon ? Offset.zero : Offset(0, 5),
+                  child: IconButton(
+                    color: Colors.white60,
+                    icon: Icon(LucideIcons.arrowUp),
+                    onPressed: () async {
+                      Vibration.vibrate(duration: 5);
+                      FocusScope.of(context).unfocus();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          if (palabraSeleccionada == "Solicitud a Usuario") {
+                            _scrollController.animateTo(
+                              1486,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          } else if (palabraSeleccionada == "Vinculación") {
+                            _scrollController.animateTo(
+                              1028,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          } else if (palabraSeleccionada == "Código QR") {
+                            _scrollController.animateTo(
+                              1028,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          } else {
+                            _scrollController.animateTo(
+                              975,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(width: w(13)),
+            ],
+          ),
         ),
         body: Stack(
           children: [

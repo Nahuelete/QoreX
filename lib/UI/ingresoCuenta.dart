@@ -3,8 +3,10 @@
 import 'dart:convert';
 
 import 'package:bcrypt/bcrypt.dart';
+import 'package:bluetooth/UI/bloqueado.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
 import 'package:bluetooth/UI/recuperarPassword.dart';
+import 'package:bluetooth/UI/registrarse.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -55,6 +57,8 @@ class _ingresoPageState extends State<ingresoPage>
   bool claveErronea = false;
   bool _mostrarNumeroPlano = false;
   int _indicePlano = -1;
+  int cantidadIntentos = 3;
+  bool cuentaBloqueada = false;
 
   //efecto Shake
   late AnimationController _shakeController;
@@ -151,6 +155,59 @@ class _ingresoPageState extends State<ingresoPage>
     if (value.length == 5) validarClave();
   }
 
+  //Guardar Intentos
+  Future<void> guardarTiempoIntentos() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Hora actual
+    DateTime ahora = DateTime.now();
+
+    // Sumar 10 minutos
+    DateTime horaMas10 = ahora.add(const Duration(minutes: 10));
+
+    // Guardar como String ISO (recomendado)
+    await prefs.setString('horaResetIntentos', horaMas10.toIso8601String());
+    await prefs.setInt('cantidadIntentos', cantidadIntentos);
+
+    print(prefs.get('horaResetIntentos'));
+  }
+
+  Future<void> verificarTiempoIntentos() async {
+    await leerShared();
+    await obtenerDatos();
+    final prefs = await SharedPreferences.getInstance();
+
+    final horaString = prefs.getString('horaResetIntentos');
+    final cantidadIntentosGuardadosInt = prefs.getInt('cantidadIntentos');
+
+    if (horaString == null) {
+      setState(() {
+        cantidadIntentos = 3;
+      });
+      return;
+    }
+
+    final DateTime horaGuardada = DateTime.parse(horaString);
+    final DateTime ahora = DateTime.now();
+
+    if (ahora.isAfter(horaGuardada) || ahora.isAtSameMomentAs(horaGuardada)) {
+      setState(() {
+        cantidadIntentos = 3;
+      });
+    } else {
+      setState(() {
+        cantidadIntentos = cantidadIntentosGuardadosInt!;
+      });
+    }
+  }
+  //Fin Guardar Intentos
+
+  Future<void> bloquearCuenta() async {
+    FirebaseFirestore.instance.collection("Usuarios").doc(uidUser).update({
+      "Estado": "Bloqueado",
+    });
+  }
+
   Future<void> validarClave() async {
     bool esValida = BCrypt.checkpw(_controllerClave.text + "000", claveUser);
 
@@ -158,17 +215,54 @@ class _ingresoPageState extends State<ingresoPage>
       iniciarSesion();
     } else {
       setState(() {
-        claveErronea = true;
+        cantidadIntentos -= 1;
       });
 
-      Future.delayed(Duration(milliseconds: 850), () {
+      guardarTiempoIntentos();
+
+      if (cantidadIntentos == 0) {
         setState(() {
-          claveValida = false;
-          claveErronea = false;
-          _controllerClave.clear();
+          cuentaBloqueada = true;
+          claveErronea = true;
         });
-      });
-    }
+
+        bloquearCuenta();
+
+        Future.delayed(const Duration(milliseconds: 800), () {
+          Vibration.vibrate(duration: 5);
+
+          Navigator.of(context).pushAndRemoveUntil(
+            PageTransition(
+              type: PageTransitionType.rightToLeft,
+              duration: const Duration(milliseconds: 430),
+              reverseDuration: const Duration(milliseconds: 300),
+              child: bloqueadoPage(),
+            ),
+            (Route<dynamic> route) => false,
+          );
+        });
+      } else {
+        setState(() {
+          claveErronea = true;
+        });
+
+        _shakeController.forward(from: 0);
+        Vibration.vibrate(duration: 15);
+
+        Future.delayed(Duration(milliseconds: 850), () {
+          setState(() {
+            claveValida = false;
+            _controllerClave.clear();
+          });
+        });
+
+        Future.delayed(const Duration(milliseconds: 3800), () {
+          setState(() {
+            claveErronea = false;
+          });
+        });
+      }
+    } 
   }
 
   //Iniciar Sesion
@@ -217,6 +311,7 @@ class _ingresoPageState extends State<ingresoPage>
       await storage.write(key: 'codeUser', value: uidUser);
 
       // ⏳ Espera visual
+      //Agregar vibracion "Candado"
       await Future.delayed(const Duration(milliseconds: 1300));
 
       Vibration.vibrate(duration: 15);
@@ -236,6 +331,33 @@ class _ingresoPageState extends State<ingresoPage>
 
       if (!mounted) return;
       //showFlushbar(context, "La contraseña es incorrecta.");
+      
+      /*
+      setState(() {
+        cantidadIntentos -= 1;
+      });
+
+      if (cantidadIntentos == 0) {
+        setState(() {
+          cuentaBloqueada = true;
+          claveErronea = true;
+          faceIdUser = false;
+        });
+
+        bloquearCuenta();
+
+        Future.delayed(const Duration(milliseconds: 800), () {
+          Vibration.vibrate(duration: 5);
+
+          Navigator.push(
+            context,
+            PageTransition(
+              type: PageTransitionType.rightToLeft,
+              child: bloqueadoPage(),
+            ),
+          );
+        });
+      }
 
       setState(() {
         claveErronea = true;
@@ -248,9 +370,16 @@ class _ingresoPageState extends State<ingresoPage>
         if (!mounted) return;
         setState(() {
           _controllerClave.clear();
+        });
+      });
+
+      Future.delayed(const Duration(milliseconds: 3800), () {
+        setState(() {
           claveErronea = false;
         });
       });
+      */
+
     } catch (e) {
       // ❌ ERROR DESCONOCIDO
       print("Error iniciarSesion: $e");
@@ -286,6 +415,7 @@ class _ingresoPageState extends State<ingresoPage>
         });
 
         _shakeController.forward(from: 0);
+        Vibration.vibrate(duration: 15);
 
         Future.delayed(const Duration(milliseconds: 800), () {
           if (!mounted) return;
@@ -354,100 +484,48 @@ class _ingresoPageState extends State<ingresoPage>
   }
 
   Future<void> solicitarBiometria() async {
-    bool canCheck = await localAuth.canCheckBiometrics;
-    bool authenticated = false;
+    if (!cuentaBloqueada) {
+      bool canCheck = await localAuth.canCheckBiometrics;
+      bool authenticated = false;
 
-    //Setear Estado
+      //Setear Estado
 
-    if (!canCheck) {
-      print('El dispositivo no soporta biometría');
-
-      setState(() {
-        _controllerClave.text = "00000";
-        claveErronea = true;
-      });
-
-      _shakeController.forward(from: 0);
-
-      Future.delayed(Duration(milliseconds: 800), () {
+      if (!canCheck) {
+        print('El dispositivo no soporta biometría');
         setState(() {
-          claveValida = false;
-          claveErronea = false;
-          _controllerClave.clear();
-        });
-      });
-      return;
-    }
-
-    try {
-      authenticated = await localAuth.authenticate(
-        localizedReason: 'Escanea tu huella o Face ID para iniciar sesión',
-        options: const AuthenticationOptions(
-          stickyAuth: true, // Mantiene la sesión en background
-          biometricOnly: true, // Solo biometría
-        ),
-      );
-    } on PlatformException catch (e) {
-      print("Error de biometría: ${e.code}");
-
-      if (e.code == "NotEnrolled" ||
-          e.code == "LockedOut" ||
-          e.code == "PermanentlyLockedOut") {
-        setState(() {
-          _controllerClave.text = "00000";
-          claveErronea = true;
-        });
-
-        _shakeController.forward(from: 0);
-
-        Future.delayed(Duration(milliseconds: 800), () {
-          setState(() {
-            claveValida = false;
-            claveErronea = false;
-            _controllerClave.clear();
-          });
+          faceIdUser = false;
         });
         return;
       }
 
-      if (e.code == "Canceled") {
-        print("El usuario canceló la autenticación");
-        setState(() {
-          _controllerClave.text = "00000";
-          claveErronea = true;
-        });
+      try {
+        authenticated = await localAuth.authenticate(
+          localizedReason: 'Escanea tu huella o Face ID para iniciar sesión',
+          options: const AuthenticationOptions(
+            stickyAuth: false,
+            biometricOnly: true,
+          ),
+        );
+      } on PlatformException catch (e) {
+        print("Error de biometría: ${e.code}");
 
-        _shakeController.forward(from: 0);
+        if (e.code == "NotEnrolled" ||
+            e.code == "LockedOut" ||
+            e.code == "PermanentlyLockedOut") {
+          return;
+        }
 
-        Future.delayed(Duration(milliseconds: 800), () {
-          setState(() {
-            claveValida = false;
-            claveErronea = false;
-            _controllerClave.clear();
-          });
-        });
-        return;
+        if (e.code == "Canceled") {
+          print("El usuario canceló la autenticación");
+          return;
+        }
       }
-    }
 
-    if (authenticated) {
-      iniciarSesionFaceID();
-    } else {
-      print('Autenticación biométrica fallida');
-      setState(() {
-        _controllerClave.text = "00000";
-        claveErronea = true;
-      });
-
-      _shakeController.forward(from: 0);
-
-      Future.delayed(Duration(milliseconds: 800), () {
-        setState(() {
-          claveValida = false;
-          claveErronea = false;
-          _controllerClave.clear();
-        });
-      });
+      if (authenticated) {
+        iniciarSesionFaceID();
+      } else {
+        print('Autenticación biométrica fallida');
+      }
     }
   }
 
@@ -457,6 +535,8 @@ class _ingresoPageState extends State<ingresoPage>
     leerShared();
 
     obtenerDatos();
+
+    verificarTiempoIntentos();
 
     _focusClave = FocusNode();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -706,13 +786,17 @@ class _ingresoPageState extends State<ingresoPage>
                           ? (claveErronea
                                 ? Colors.red.withOpacity(0.85)
                                 : const Color.fromRGBO(1, 165, 113, 1))
-                          : Colors.black.withOpacity(0.18),
+                          : (temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.10)
+                                : Colors.black.withOpacity(0.18)),
                       border: Border.all(
                         color: filled
                             ? (claveErronea
                                   ? Colors.red.withOpacity(0.85)
                                   : const Color.fromRGBO(1, 165, 113, 1))
-                            : Colors.black.withOpacity(0.25),
+                            : (temaUser == "Oscuro"
+                                  ? Colors.white.withOpacity(0.25)
+                                  : Colors.black.withOpacity(0.25)),
                       ),
                     ),
                     child: filled
@@ -792,6 +876,59 @@ class _ingresoPageState extends State<ingresoPage>
               ),
             ),
 
+            /// ALERTA CLAVE ERRONEA
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: claveErronea
+                  ? Padding(
+                      key: const ValueKey("error"),
+                      padding: EdgeInsets.symmetric(horizontal: w(40)),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: w(14),
+                          vertical: h(12),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.35),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              LucideIcons.alertCircle,
+                              size: sp(15),
+                              color: Colors.red.withOpacity(0.85),
+                            ),
+                            SizedBox(width: w(10)),
+                            Expanded(
+                              child: Text(
+                                cantidadIntentos > 1
+                                    ? "La clave ingresada es incorrecta. Te quedan $cantidadIntentos intentos."
+                                    : cantidadIntentos == 0
+                                    ? "La clave ingresada es incorrecta. No te quedan mas intentos."
+                                    : "La clave ingresada es incorrecta. Te queda $cantidadIntentos intento.",
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: sp(13.5),
+                                  color: Colors.red.withOpacity(0.9),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey("no_error")),
+            ),
+
+            SizedBox(height: h(13)),
+
+
             Spacer(),
 
             /// BOTÓN OLVIDE CLAVE
@@ -852,7 +989,7 @@ class _ingresoPageState extends State<ingresoPage>
               ),
             ),
 
-            SizedBox(height: h(33)),
+            SizedBox(height: h(23)),
 
             /// TECLADO
             Padding(
@@ -886,6 +1023,7 @@ class _ingresoPageState extends State<ingresoPage>
                       /// FACE ID
                       _teclaIcono(
                         icon: LucideIcons.scanFace,
+                        esFaceId: true,
                         w: w,
                         onTap: () {
                           Vibration.vibrate(duration: 5);
@@ -1050,25 +1188,47 @@ class _ingresoPageState extends State<ingresoPage>
     required IconData icon,
     required double Function(double) w,
     required VoidCallback onTap,
-  }) {
+    bool esFaceId = false,
+}) {
+    final bool habilitado = !esFaceId || faceIdUser;
+
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: habilitado ? onTap : null,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         width: w(90),
         height: w(60),
         decoration: BoxDecoration(
-          color: temaUser == "Oscuro"
-              ? Colors.white.withOpacity(0.06)
-              : Colors.black.withOpacity(0.18),
+          color: habilitado
+              ? (temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.black.withOpacity(0.18))
+              : (temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.025)
+                    : Colors.black.withOpacity(0.08)),
           borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: habilitado
+                ? Colors.transparent
+                : (temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.12)),
+          ),
         ),
         child: Center(
           child: Icon(
             icon,
-            color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+            size: w(24),
+            color: habilitado
+                ? (temaUser == "Oscuro" ? Colors.white : Colors.black)
+                : (temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.35)
+                      : Colors.black.withOpacity(0.35)),
           ),
         ),
       ),
     );
   }
+
 }

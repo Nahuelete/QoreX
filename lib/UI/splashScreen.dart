@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, avoid_print, use_build_context_synchronously, unused_field, deprecated_member_use, unused_local_variable, sized_box_for_whitespace, unused_element
 
 import 'dart:math';
+import 'package:bluetooth/UI/bloqueado.dart';
 import 'package:bluetooth/UI/ingresoCuenta.dart';
 import 'package:bluetooth/UI/inicio.dart';
 import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/registroUI.dart';
@@ -30,6 +31,7 @@ class _SplashscreenState extends State<Splashscreen>
   late Animation<double> _animationContainerMovimiento;
 
   bool recordarme = false;
+  String estado = "Habilitado";
 
   String codeUser = "";
 
@@ -77,6 +79,7 @@ class _SplashscreenState extends State<Splashscreen>
     if (userDoc.exists) {
       final data = userDoc.data()!;
       recordarme = data['Recordarme'] ?? false;
+      estado = data['Estado'] ?? "Habilitado";
 
       if (recordarme) {
         // ✅ Usuario existe y pidió recordarme
@@ -111,7 +114,9 @@ class _SplashscreenState extends State<Splashscreen>
           type: PageTransitionType.rightToLeft,
           duration: const Duration(milliseconds: 430),
           reverseDuration: const Duration(milliseconds: 300),
-          child: paso == 0
+          child: estado == "Bloqueado"
+              ? bloqueadoPage()
+              : paso == 0
               ? inicioPage()
               : paso == -1
               ? ingresoPage()

@@ -176,96 +176,99 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Color.fromRGBO(3, 5, 25, 1),
-          systemOverlayStyle: SystemUiOverlayStyle.light,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              SizedBox(width: w(13)),
-              GestureDetector(
-                child: Container(
-                  width: w(40),
-                  height: h(40),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromRGBO(1, 165, 113, 1),
-                        Colors.green.shade600,
-                      ],
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: AppBar(
+            backgroundColor: Color.fromRGBO(3, 5, 25, 1),
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                SizedBox(width: w(13)),
+                GestureDetector(
+                  child: Container(
+                    width: w(40),
+                    height: h(40),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(1, 165, 113, 1),
+                          Colors.green.shade600,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    child: Icon(LucideIcons.arrowLeft, color: Colors.white),
                   ),
-                  child: Icon(LucideIcons.arrowLeft, color: Colors.white),
+                  onTap: () {
+                    Vibration.vibrate(duration: 5);
+
+                    setState(() {
+                      verificarFocoEmail = false;
+                    });
+
+                    if (FocusManager.instance.primaryFocus != null) {
+                      FocusManager.instance.primaryFocus!.unfocus();
+                    }
+
+                    Future.delayed(Duration(milliseconds: 100), () {
+                      Navigator.pop(context);
+                    });
+                  },
                 ),
-                onTap: () {
-                  Vibration.vibrate(duration: 5);
-
-                  setState(() {
-                    verificarFocoEmail = false;
-                  });
-
-                  if (FocusManager.instance.primaryFocus != null) {
-                    FocusManager.instance.primaryFocus!.unfocus();
-                  }
-
-                  Future.delayed(Duration(milliseconds: 100), () {
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-              SizedBox(width: w(10)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: w(300)),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        "Recuperar Clave",
-                        style: TextStyle(
-                          fontSize: sp(18),
-                          color: Colors.white,
-                          fontFamily: "PoppinsBold",
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: w(300)),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: RichText(
-                        text: TextSpan(
+                SizedBox(width: w(10)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: w(300)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          "Recuperar Clave",
                           style: TextStyle(
-                            fontSize: sp(13),
-                            fontFamily: "Poppins",
-                            color: Colors.grey,
+                            fontSize: sp(18),
+                            color: Colors.white,
+                            fontFamily: "PoppinsBold",
                           ),
-                          children: [
-                            TextSpan(
-                              text: "Recupera el acceso a tu cuenta de ",
-                            ),
-                            TextSpan(
-                              text: "Qore",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            TextSpan(
-                              text: "X",
-                              style: TextStyle(
-                                color: Color.fromRGBO(1, 165, 113, 1),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: w(300)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: sp(13),
+                              fontFamily: "Poppins",
+                              color: Colors.grey,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: "Recupera el acceso a tu cuenta de ",
+                              ),
+                              TextSpan(
+                                text: "Qore",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              TextSpan(
+                                text: "X",
+                                style: TextStyle(
+                                  color: Color.fromRGBO(1, 165, 113, 1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         body: Stack(
