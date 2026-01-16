@@ -1,13 +1,14 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names, avoid_print, use_build_context_synchronously, unused_field, deprecated_member_use, unused_local_variable, sized_box_for_whitespace, unused_element
 
 import 'dart:math';
-import 'package:bluetooth/UI/ingreso.dart';
-import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/ingresoBiometria.dart';
+import 'package:bluetooth/UI/ingresoCuenta.dart';
+import 'package:bluetooth/UI/inicio.dart';
 import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/registroUI.dart';
 import 'package:bluetooth/UI/registrarse.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -111,9 +112,9 @@ class _SplashscreenState extends State<Splashscreen>
           duration: const Duration(milliseconds: 430),
           reverseDuration: const Duration(milliseconds: 300),
           child: paso == 0
-              ? ingresoPage()
+              ? inicioPage()
               : paso == -1
-              ? ingresoBiometriaPage() // O menu clave si no usás biometría
+              ? ingresoPage()
               : paso > 0
               ? registrarsePage(pasoGuardado: paso)
               : registroPage(),
@@ -161,11 +162,6 @@ class _SplashscreenState extends State<Splashscreen>
     await verificarUsuario();
     if (!mounted) return;
     await redireccionarUsuario();
-  }
-
-  Future<void> a() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('codeUser', "98957");
   }
 
   @override
@@ -245,22 +241,53 @@ class _SplashscreenState extends State<Splashscreen>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return Stack(
+      children: [
+        // Fondo gradiente que cubre toda la pantalla
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.fromRGBO(3, 5, 25, 1),
+                Color.fromRGBO(13, 20, 40, 1),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: 1,
-          backgroundColor: Color.fromRGBO(3, 5, 25, 1),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              automaticallyImplyLeading: false,
+            ),
+          ),
+          body: Stack(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: splashScreen(),
+              ),
+            ],
+          ),
         ),
-        body: Stack(children: [SizedBox(child: splashScreen())]),
-      ),
+      ],
     );
   }
 
@@ -305,8 +332,8 @@ class _SplashscreenState extends State<Splashscreen>
                   child: Center(
                     child: Image.asset(
                       "assets/logoApp.png",
-                      height: h(183),
-                      width: w(183),
+                      height: h(83),
+                      width: w(83),
                     ),
                     /*AnimatedBuilder(
                       animation: _controllerContainerMovimiento,

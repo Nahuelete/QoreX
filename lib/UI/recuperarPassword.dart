@@ -4,6 +4,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:bluetooth/UI/iniciarSesion.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:vibration/vibration.dart';
@@ -27,6 +28,8 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
 
   //Validar Email
   bool emailValido = false;
+
+  bool verificarFocoEmail = true;
 
   //Cargando
   bool cargando = false;
@@ -120,7 +123,7 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
   }
 
   void _onEmailFocusChange() {
-    if (!_focusEmailRecuperar.hasFocus && mounted) {
+    if (!_focusEmailRecuperar.hasFocus && mounted && verificarFocoEmail) {
       if (ModalRoute.of(context)?.isCurrent ?? false) {
         Future.delayed(Duration(milliseconds: 1), () {
           if (mounted) _focusEmailRecuperar.requestFocus();
@@ -139,7 +142,7 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
 
     _focusEmailRecuperar.addListener(_onEmailFocusChange);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration(milliseconds: 300), () {
       if (mounted) _focusEmailRecuperar.requestFocus();
     });
   }
@@ -175,6 +178,7 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: Color.fromRGBO(3, 5, 25, 1),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
           elevation: 0,
           automaticallyImplyLeading: false,
           title: Row(
@@ -197,16 +201,18 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
                 ),
                 onTap: () {
                   Vibration.vibrate(duration: 5);
+
+                  setState(() {
+                    verificarFocoEmail = false;
+                  });
+
                   if (FocusManager.instance.primaryFocus != null) {
                     FocusManager.instance.primaryFocus!.unfocus();
                   }
-                  Navigator.push(
-                    context,
-                    PageTransition(
-                      type: PageTransitionType.rightToLeft,
-                      child: iniciarSesionPage(),
-                    ),
-                  );
+
+                  Future.delayed(Duration(milliseconds: 100), () {
+                    Navigator.pop(context);
+                  });
                 },
               ),
               SizedBox(width: w(10)),

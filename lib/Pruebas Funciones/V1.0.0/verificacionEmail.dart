@@ -6,9 +6,8 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/presentacionUI.dart';
-import 'package:bluetooth/UI/ingreso.dart';
-import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/registroUI.dart';
 import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/avisoVerificacion.dart';
+import 'package:bluetooth/UI/inicio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -476,7 +475,7 @@ class _verificacionEmailPageState extends State<verificacionEmailPage>
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ingresoPage(),
+                                      builder: (context) => inicioPage(),
                                     ),
                                   );
                                   setState(() {

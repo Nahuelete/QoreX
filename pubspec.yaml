@@ -61,6 +61,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
   phone_numbers_parser: ^9.0.18
   bcrypt: ^1.1.3
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -132,6 +133,7 @@ flutter:
     - assets/imgPresentacion3.png
     - assets/logoApp.png
     - assets/logoAppCompleto.png
+    - assets/logoAppCompletoNegro.png
     - assets/imgMasculino.png
     - assets/imgFemenino.png
     - assets/imgOtroGenero.png

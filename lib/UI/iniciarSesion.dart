@@ -1,7 +1,7 @@
 // ignore_for_file: camel_case_types, use_key_in_widget_constructors, file_names, deprecated_member_use, avoid_print, use_build_context_synchronously, prefer_final_fields, prefer_interpolation_to_compose_strings, unused_local_variable
 
 import 'package:another_flushbar/flushbar.dart';
-import 'package:bluetooth/UI/ingreso.dart';
+import 'package:bluetooth/UI/inicio.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
 import 'package:bluetooth/UI/recuperarPassword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -151,6 +151,12 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
         claveErronea = false;
       });
 
+      await storage.write(key: 'codeUser', value: uidUser);
+      await storage.write(
+        key: 'claveUser',
+        value: _controllerPasswordLogin.text.trim() + "000",
+      );
+
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (!mounted) return;
@@ -174,7 +180,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
           .update({"Recordarme": recordarme});
 
       // ⏳ Espera visual
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(milliseconds: 1500));
 
       Vibration.vibrate(duration: 15);
 
@@ -336,91 +342,95 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Color.fromRGBO(3, 5, 25, 1),
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              SizedBox(width: w(13)),
-              GestureDetector(
-                child: Container(
-                  width: w(40),
-                  height: h(40),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromRGBO(1, 165, 113, 1),
-                        Colors.green.shade600,
-                      ],
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                SizedBox(width: w(13)),
+                GestureDetector(
+                  child: Container(
+                    width: w(40),
+                    height: h(40),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(1, 165, 113, 1),
+                          Colors.green.shade600,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    child: Icon(LucideIcons.arrowLeft, color: Colors.white),
                   ),
-                  child: Icon(LucideIcons.arrowLeft, color: Colors.white),
+                  onTap: () {
+                    Vibration.vibrate(duration: 5);
+                    if (FocusManager.instance.primaryFocus != null) {
+                      FocusManager.instance.primaryFocus!.unfocus();
+                    }
+                    Navigator.push(
+                      context,
+                      PageTransition(
+                        type: PageTransitionType.rightToLeft,
+                        child: inicioPage(),
+                      ),
+                    );
+                  },
                 ),
-                onTap: () {
-                  Vibration.vibrate(duration: 5);
-                  if (FocusManager.instance.primaryFocus != null) {
-                    FocusManager.instance.primaryFocus!.unfocus();
-                  }
-                  Navigator.push(
-                    context,
-                    PageTransition(
-                      type: PageTransitionType.rightToLeft,
-                      child: ingresoPage(),
-                    ),
-                  );
-                },
-              ),
-              SizedBox(width: w(10)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: w(300)),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        "Iniciar Sesion",
-                        style: TextStyle(
-                          fontSize: sp(18),
-                          color: Colors.white,
-                          fontFamily: "PoppinsBold",
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: w(300)),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: RichText(
-                        text: TextSpan(
+                SizedBox(width: w(10)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: w(300)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          "Iniciar Sesion",
                           style: TextStyle(
-                            fontSize: sp(13),
-                            fontFamily: "Poppins",
-                            color: Colors.grey,
+                            fontSize: sp(18),
+                            color: Colors.white,
+                            fontFamily: "PoppinsBold",
                           ),
-                          children: [
-                            TextSpan(text: "Ingresa a tu cuenta de "),
-                            TextSpan(
-                              text: "Qore",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            TextSpan(
-                              text: "X",
-                              style: TextStyle(
-                                color: Color.fromRGBO(1, 165, 113, 1),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: w(300)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: sp(13),
+                              fontFamily: "Poppins",
+                              color: Colors.grey,
+                            ),
+                            children: [
+                              TextSpan(text: "Ingresa a tu cuenta de "),
+                              TextSpan(
+                                text: "Qore",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              TextSpan(
+                                text: "X",
+                                style: TextStyle(
+                                  color: Color.fromRGBO(1, 165, 113, 1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         body: Stack(
@@ -1023,7 +1033,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
 
           Spacer(),
 
-          /// BOTÓN INGRESAR
+          /// BOTÓN OLVIDE CLAVE
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w(40)),
             child: GestureDetector(

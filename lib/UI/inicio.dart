@@ -7,13 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:vibration/vibration.dart';
 
-class ingresoPage extends StatefulWidget {
+class inicioPage extends StatefulWidget {
   @override
-  State<ingresoPage> createState() => _ingresoPageState();
+  State<inicioPage> createState() => _inicioPageState();
 }
 
-class _ingresoPageState extends State<ingresoPage>
-    with TickerProviderStateMixin {
+class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
   // ================= CONTROLLERS =================
   late final PageController _pageController;
   late final AnimationController _progressController;
@@ -150,9 +149,13 @@ class _ingresoPageState extends State<ingresoPage>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: 13,
-          backgroundColor: Color.fromRGBO(3, 5, 25, 1),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: AppBar(
+            toolbarHeight: 13,
+            backgroundColor: Colors.transparent,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+          ),
         ),
         body: Stack(children: [SizedBox(child: ingreso())]),
       ),

@@ -11232,15 +11232,15 @@ class _notificacionesPageState extends State<notificacionesPage>
                     children: [
                       /// ICONO
                       Container(
-                        width: w(53),
-                        height: h(53),
+                        width: w(33),
+                        height: h(33),
                         decoration: BoxDecoration(
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: Image.asset(
                           "assets/logoApp.png",
-                          height: h(53),
+                          height: h(33),
                           fit: BoxFit.contain,
                         ),
                       ),
