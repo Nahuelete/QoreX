@@ -1515,7 +1515,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                     ],
               ),
             ),
-            body: Stack(children: [SizedBox(child: inicioPage())]),
+            body: Stack(children: [SizedBox(child: a3())]),
           ),
         ),
         Visibility(
@@ -2225,6 +2225,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
     );
   }
 
+//Test ui 1
   Widget a({Key? key}) {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
@@ -5378,6 +5379,1001 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
       ),
     );
   }
+//Fin Test ui 1
+
+  //Test ui 3
+  Widget a3() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Funciones de adaptación responsiva
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return Visibility(
+      visible: inicioPageVis,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          physics: animacionInicialCreada
+              ? const BouncingScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
+          child: Stack(
+            children: [
+              SvgPicture.asset(
+                'assets/overlapping-circles.svg',
+                color: temaUser == "Oscuro" || temaUser == ""
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.black.withOpacity(0.23), // color del patrón
+                fit: BoxFit.cover,
+                width: screenWidth,
+                height: screenHeight,
+              ),
+              Column(
+                children: [
+                  // Header - Nombre + avatar + saldo
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: w(33),
+                      vertical: h(13),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "$nameUser $apellidoUser",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: sp(20),
+                                fontFamily: "PoppinsBold",
+                              ),
+                            ),
+                            SizedBox(height: 3),
+                            Text(
+                              "Cuenta personal • ARS",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: sp(13),
+                                fontFamily: "Poppins",
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: h(28)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Saldo disponible",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: sp(13),
+                                    fontFamily: "PoppinsBold",
+                                  ),
+                                ),
+                                SizedBox(height: h(5)),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: w(300)),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: MoneyCounter(
+                                      amount: saldoUser,
+                                      showBalance: showBalance,
+                                      tema: temaUser,
+                                      animacionInicialCreada:
+                                          animacionInicialCreada,
+                                      animarSaldo: animarSaldo,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                showBalance
+                                    ? LucideIcons.eye
+                                    : LucideIcons.eyeOff,
+                                color: Colors.white70,
+                                size: sp(25),
+                              ),
+                              onPressed: () async {
+                                Vibration.vibrate(duration: 5);
+                                setState(() {
+                                  showBalance = !showBalance;
+                                });
+                                await guardarVisSaldo(showBalance);
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: h(13)),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: w(15),
+                            vertical: h(8),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: Text(
+                            "Ver detalles  →",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: sp(13),
+                              fontFamily: "Poppins",
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: h(23)),
+
+                  // Botones Enviar / Recibir
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: w(33)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: Icon(
+                              Icons.arrow_upward_rounded,
+                              color: Colors.white,
+                              size: sp(20),
+                            ),
+                            label: Text(
+                              "Enviar",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: "PoppinsBold",
+                                fontSize: sp(15),
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromRGBO(1, 165, 113, 1),
+                              padding: EdgeInsets.symmetric(vertical: h(18)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: () {},
+                          ),
+                        ),
+                        SizedBox(width: w(15)),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: Icon(
+                              Icons.arrow_downward_rounded,
+                              size: sp(20),
+                            ),
+                            label: Text(
+                              "Recibir",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: "PoppinsBold",
+                                fontSize: sp(15),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white24),
+                              padding: EdgeInsets.symmetric(vertical: h(18)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: () {},
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: h(23)),
+
+                  // Enviar con código de vinculación
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blueAccent.shade700,
+                            Colors.cyan.shade600,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "Enviar con código de vinculación",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Solicitar tarjeta
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Solicitá tu tarjeta física",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Llega en 3-5 días hábiles sin costo de envío",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            "Solicitar tarjeta →",
+                            style: TextStyle(
+                              color: Colors.cyanAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Scroll horizontal - Funcionalidades principales
+                  SizedBox(
+                    height: 110,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Pago Grupal
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.teal.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.group, color: Colors.teal, size: 32),
+                              SizedBox(height: 12),
+                              Text(
+                                "Pago Grupal",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Usuarios Cercanos
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orangeAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.orangeAccent.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.location_on,
+                                color: Colors.orangeAccent,
+                                size: 32,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "Usuarios Cercanos",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Cuenta Compartida
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.pinkAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.pinkAccent.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.people_alt,
+                                color: Colors.pinkAccent,
+                                size: 32,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "Cuenta Compartida",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Scroll horizontal - Funcionalidades secundarias
+                  SizedBox(
+                    height: 100,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Comprar USD
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Comprar USD",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Ahorros
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.savings,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Ahorros",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Préstamos Express
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.speed,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Préstamos Express",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Programar Pagos
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.calendar_today,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Programar Pagos",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  //Fin Test ui 3
+
+  //Test ui 4
+  Widget a4() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hola,',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Juan Carlos Pérez',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.blue.shade700,
+                    child: const Text(
+                      'JP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade700, Colors.blue.shade900],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.shade700.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Saldo disponible',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              showBalance = !showBalance;
+                            });
+                          },
+                          child: Icon(
+                            showBalance
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      showBalance ? '••••••' : '\$45,230.50',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.arrow_upward, size: 20),
+                            label: const Text('Enviar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.blue.shade900,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.arrow_downward, size: 20),
+                            label: const Text('Recibir'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.blue.shade900,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.qr_code, size: 20),
+                      label: const Text('Enviar con código de vinculación'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple.shade700, Colors.purple.shade900],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.credit_card,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Solicita tu tarjeta',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Sin costo de envío',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                'Funciones principales',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 140,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    Container(
+                      width: 160,
+                      margin: const EdgeInsets.only(right: 16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.blue.shade700.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade700.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.group,
+                              color: Colors.blue.shade400,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Pago Grupal',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 160,
+                      margin: const EdgeInsets.only(right: 16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.green.shade700.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade700.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.location_on,
+                              color: Colors.green.shade400,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Usuarios Cercanos',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 160,
+                      margin: const EdgeInsets.only(right: 16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.orange.shade700.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade700.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.account_balance_wallet,
+                              color: Colors.orange.shade400,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Cuenta Compartida',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                'Más servicios',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.attach_money,
+                            color: Colors.green.shade400,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Comprar USD',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.savings,
+                            color: Colors.amber.shade400,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Ahorros',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.flash_on,
+                            color: Colors.purple.shade400,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Préstamos Express',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F3A),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.blue.shade400,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Programar Pagos',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  //Fin Test ui 4
 
   Widget inicioPage() {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -16088,162 +17084,3 @@ class _TarjetasPatternPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _TarjetasPatternPainter oldDelegate) => true;
 }
-
-//Selector Tema
-class WaveOscuro1 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF0F3A3F).withOpacity(0.25)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.35);
-
-    path.cubicTo(
-      size.width * 0.20,
-      size.height * 0.40,
-      size.width * 0.35,
-      size.height * 0.70,
-      size.width * 0.55,
-      size.height * 0.60,
-    );
-
-    path.cubicTo(
-      size.width * 0.75,
-      size.height * 0.50,
-      size.width * 0.90,
-      size.height * 0.80,
-      size.width,
-      size.height * 0.65,
-    );
-
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class WaveOscuro2 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF1C5A5A).withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.50);
-
-    path.cubicTo(
-      size.width * 0.15,
-      size.height * 0.85,
-      size.width * 0.40,
-      size.height * 0.55,
-      size.width * 0.60,
-      size.height * 0.75,
-    );
-
-    path.cubicTo(
-      size.width * 0.80,
-      size.height * 0.90,
-      size.width * 0.95,
-      size.height * 0.60,
-      size.width,
-      size.height * 0.70,
-    );
-
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class WaveClaro1 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.25)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.35);
-
-    path.cubicTo(
-      size.width * 0.20,
-      size.height * 0.40,
-      size.width * 0.35,
-      size.height * 0.70,
-      size.width * 0.55,
-      size.height * 0.60,
-    );
-
-    path.cubicTo(
-      size.width * 0.75,
-      size.height * 0.50,
-      size.width * 0.90,
-      size.height * 0.80,
-      size.width,
-      size.height * 0.65,
-    );
-
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class WaveClaro2 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.25).withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.50);
-
-    path.cubicTo(
-      size.width * 0.15,
-      size.height * 0.85,
-      size.width * 0.40,
-      size.height * 0.55,
-      size.width * 0.60,
-      size.height * 0.75,
-    );
-
-    path.cubicTo(
-      size.width * 0.80,
-      size.height * 0.90,
-      size.width * 0.95,
-      size.height * 0.60,
-      size.width,
-      size.height * 0.70,
-    );
-
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-//Fin Selector Tema
