@@ -192,48 +192,52 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
             child: Column(
               children: [
                 /// ================= HEADER =================
-                SlideTransition(
-                  position: _slideHeader,
-                  child: FadeTransition(
-                    opacity: _fade,
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          "assets/logoAppCompleto.png",
-                          height: h(90),
-                          width: w(170),
-                        ),
-                        SizedBox(height: h(5)),
-                        Text(
-                          "Bienvenido",
-                          style: TextStyle(
-                            fontSize: sp(23),
-                            fontFamily: "PoppinsBold",
-                            color: Colors.white,
+                Padding(
+                  padding: EdgeInsets.only(top: h(6)), // 🔥 sube el header
+                  child: SlideTransition(
+                    position: _slideHeader,
+                    child: FadeTransition(
+                      opacity: _fade,
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            "assets/logoAppCompleto.png",
+                            height: h(90),
+                            width: w(170),
+                            fit: BoxFit.contain,
                           ),
-                        ),
-                        SizedBox(height: h(4)),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: w(46)),
-                          child: Text(
-                            "Tu billetera digital para manejar tu dinero de forma simple y segura",
-                            textAlign: TextAlign.center,
+                          SizedBox(height: h(10)),
+                          Text(
+                            "Bienvenido",
                             style: TextStyle(
-                              fontSize: sp(13),
-                              height: 1.25,
-                              fontFamily: "Poppins",
-                              color: Colors.white.withOpacity(0.6),
+                              fontSize: sp(23),
+                              fontFamily: "PoppinsBold",
+                              color: Colors.white,
                             ),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: h(3)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: w(46)),
+                            child: Text(
+                              "Tu billetera digital para manejar tu dinero de forma simple y segura",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: sp(13),
+                                height: 1.25,
+                                fontFamily: "Poppins",
+                                color: Colors.white.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
 
-                SizedBox(height: h(33)),
+                SizedBox(height: h(28)),
 
-                /// ================= INDICADORES (ARRIBA DE LAS IMÁGENES) =================
+                /// ================= INDICADORES =================
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: w(60)),
                   child: Row(
@@ -268,7 +272,7 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
 
                 /// ================= PAGE VIEW =================
                 SizedBox(
-                  height: h(350),
+                  height: h(300),
                   child: SlideTransition(
                     position: _slideContent,
                     child: FadeTransition(
@@ -298,12 +302,11 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                   ),
                 ),
 
-                Spacer(),
-
-                SizedBox(height: h(43)),
+                /// ================= TEXTO ACCIÓN =================
+                SizedBox(height: h(83)),
 
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: w(46)),
+                  padding: EdgeInsets.symmetric(horizontal: w(55)),
                   child: Column(
                     children: [
                       Text(
@@ -315,7 +318,7 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                           color: Colors.black.withOpacity(0.85),
                         ),
                       ),
-                      SizedBox(height: h(6)),
+                      SizedBox(height: h(5)),
                       Text(
                         "Creá tu cuenta o ingresá para continuar",
                         textAlign: TextAlign.center,

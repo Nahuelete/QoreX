@@ -1188,241 +1188,115 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: AppBar(
-                backgroundColor: Colors.transparent,
-                systemOverlayStyle: temaUser == "Oscuro"
-                    ? SystemUiOverlayStyle.light
-                    : SystemUiOverlayStyle.dark,
-                elevation: 0,
-                automaticallyImplyLeading: false,
-                title: Row(
-                  children: [
-                    SizedBox(width: w(13)),
-                    if (avatarUser == "") ...[
-                      /*
-                      ClipOval(
-                        child: avatarUser == ""
-                            ? Container(
-                                width: w(40),
-                                height: w(40),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color.fromRGBO(1, 165, 113, 1),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    iniciales,
-                                    style: TextStyle(
-                                      fontSize: sp(18),
-                                      fontFamily: "PoppinsBold",
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : Image.asset(avatarUser, fit: BoxFit.cover),
-                      ),
-                      */
+  backgroundColor: Colors.transparent,
+  elevation: 0,
+  automaticallyImplyLeading: false,
+  centerTitle: true,
+  systemOverlayStyle: SystemUiOverlayStyle.light,
 
-                      //Logo
-                      Container(
-                        height: h(33),
-                        child: Image.asset(
-                          "assets/logoApp.png",
-                          height: h(33),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+  // 🔥 CLAVE 1: aumentar altura
+  toolbarHeight: h(113),
 
-                      SizedBox(width: w(10)),
-                    ],
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 500),
-                          layoutBuilder: (currentChild, previousChildren) {
-                            // 🔹 Esto asegura que SOLO se muestre el hijo actual (nada de stacking)
-                            return currentChild ?? const SizedBox();
-                          },
-                          transitionBuilder: (child, animation) {
-                            // 🔹 Definimos solo slide, sin fade
-                            final offsetAnimation =
-                                Tween<Offset>(
-                                  begin: const Offset(
-                                    0,
-                                    0.3,
-                                  ), // arranca un poco abajo
-                                  end: Offset.zero, // termina en su lugar
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  ),
-                                );
+  // 🔥 CLAVE 2: permitir ancho real
+  leadingWidth: w(113),
 
-                            return SlideTransition(
-                              position: offsetAnimation,
-                              child: child,
-                            );
-                          },
-                          child: !_showIcon
-                              ? AnimatedSlide(
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                  offset: !_showIcon
-                                      ? Offset.zero
-                                      : const Offset(0, 5),
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: w(300),
-                                    ),
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        "Hola, $nameUser 👋",
-                                        key: ValueKey("hola"),
-                                        style: TextStyle(
-                                          fontSize: sp(18),
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              temaUser == "Oscuro" ||
-                                                  temaUser == ""
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontFamily: "PoppinsBold",
-                                          overflow: TextOverflow.ellipsis,
+  leading: Center(
+    child: Image.asset(
+      "assets/logoAppCompleto.png",
+      width: w(83),
+      height: h(83),
+      fit: BoxFit.contain,
+    ),
+  ),
+
+  title: GestureDetector(
+    onTap: () {},
+    child: Padding(
+      padding: EdgeInsets.only(left: w(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: w(28),
+            height: w(28),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.fromRGBO(
+                                          1,
+                                          165,
+                                          113,
+                                          1,
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : AnimatedSlide(
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                  offset: !_showIcon
-                                      ? Offset.zero
-                                      : const Offset(0, 0.3),
-                                  child: Text(
-                                    nameUser + " " + apellidoUser,
-                                    key: ValueKey("nameUser"),
-                                    style: TextStyle(
-                                      fontSize: sp(18),
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          temaUser == "Oscuro" || temaUser == ""
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontFamily: "PoppinsBold",
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                        ),
-
-                        AnimatedSlide(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                          offset: !_showIcon ? Offset.zero : const Offset(0, 5),
-                          child: Text(
-                            "Bienvenido de vuelta",
-                            style: TextStyle(
-                              fontSize: sp(13),
-                              color: temaUser == "Oscuro" || temaUser == ""
-                                  ? Colors.grey
-                                  : Colors.black54,
-                              fontFamily: "Poppins",
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (avatarUser != "") ...[
-                      Container(
-                        height: h(43),
-                        width: w(43),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Visibility(
-                            visible: avatarUser != "",
-                            child: Image.asset(avatarUser),
-                          ),
-                        ),
-                      ),
-                    ],
-                    SizedBox(width: avatarUser == "" ? 0 : w(10)),
-                  ],
-                ),
-                actions: [
-                  // 🔹 Icono animado
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    offset: _showIcon ? Offset.zero : const Offset(0, 5),
-                    child: IconButton(
-                      color: temaUser == "Oscuro" || temaUser == ""
-                          ? Colors.white60
-                          : Colors.black,
-                      icon: Icon(
-                        showBalance ? LucideIcons.eye : LucideIcons.eyeOff,
-                      ),
-                      onPressed: () async {
-                        Vibration.vibrate(duration: 5);
-                        setState(() {
-                          showBalance = !showBalance;
-                        });
-                        await guardarVisSaldo(showBalance);
-                      },
-                    ),
-                  ),
-                  SizedBox(width: w(13)),
-                  GestureDetector(
-                    child: Badge(
-                      isLabelVisible: cantidadNotificacionesNoLeidas == 0
-                          ? false
-                          : true,
-                      label: Text(
-                        cantidadNotificacionesNoLeidas > 99
-                            ? "+99"
-                            : "$cantidadNotificacionesNoLeidas",
-                        style: TextStyle(
-                          fontFamily: "PoppinsBold",
-                          fontSize: cantidadNotificacionesNoLeidas > 99
-                              ? sp(13)
-                              : sp(15),
-                          color: Colors.white,
-                        ),
-                      ),
-                      backgroundColor: Color.fromRGBO(1, 165, 113, 1),
-                      child: Icon(
-                        notificacionesNuevas
-                            ? LucideIcons.bellRing
-                            : LucideIcons.bell,
-                        color: temaUser == "Oscuro" || temaUser == ""
-                            ? notificacionesNuevas
-                                  ? Colors.white
-                                  : Colors.white70
-                            : notificacionesNuevas
-                            ? Colors.black
-                            : Colors.black,
-                      ),
-                    ),
-                    onTap: () {
-                      Vibration.vibrate(duration: 5);
-                      Navigator.push(
-                        context,
-                        PageTransition(
-                          type: PageTransitionType.leftToRight,
-                          child: notificacionesPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(width: w(23)),
-                ],
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              iniciales,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: sp(11.8),
+                fontFamily: "PoppinsBold"
               ),
+            ),
+          ),
+         SizedBox(width: w(8)),
+         Text(
+            "$nameUser $apellidoUser",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: sp(15),
+              fontFamily: "PoppinsBold"
+            ),
+          ),
+         SizedBox(width: w(5)),
+         Icon(
+            Icons.keyboard_arrow_down,
+            color: Colors.white70,
+            size: sp(20),
+          ),
+        ],
+      ),
+    ),
+  ),
+
+  actions: [
+    Padding(
+      padding: EdgeInsets.only(right: w(15)),
+      child: GestureDetector(
+        onTap: () {
+          Vibration.vibrate(duration: 5);
+          Navigator.push(
+            context,
+            PageTransition(
+              type: PageTransitionType.leftToRight,
+              child: notificacionesPage(),
+            ),
+          );
+        },
+        child: Badge(
+          isLabelVisible: cantidadNotificacionesNoLeidas > 0,
+          label: Text(
+            cantidadNotificacionesNoLeidas > 99
+                ? "+99"
+                : "$cantidadNotificacionesNoLeidas",
+            style: TextStyle(
+              fontFamily: "PoppinsBold",
+              fontSize: sp(10),
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color(0xFF01A571),
+          child: Icon(
+            notificacionesNuevas
+                ? LucideIcons.bellRing
+                : LucideIcons.bell,
+            color: Colors.white,
+            size: sp(23),
+          ),
+        ),
+      ),
+    ),
+  ],
+)
             ),
             bottomNavigationBar: Visibility(
                   visible: true,
@@ -1515,7 +1389,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                     ],
               ),
             ),
-            body: Stack(children: [SizedBox(child: a3())]),
+            body: Stack(children: [SizedBox(child: a5())]),
           ),
         ),
         Visibility(
@@ -6374,6 +6248,3117 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
     );
   }
   //Fin Test ui 4
+
+  //Test ui 5
+  Widget a5({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    bool ocultarSaldo = false;
+
+    return SafeArea(
+      key: key,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: animacionInicialCreada
+            ? const BouncingScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: h(23)),
+
+           Padding(
+  padding: EdgeInsets.symmetric(horizontal: w(33)),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      /// 🔹 AVATAR CON INICIALES
+      CircleAvatar(
+        radius: w(23),
+        backgroundColor: Color.fromRGBO(200, 90, 0, 1),
+        child: Text(
+          iniciales,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: sp(15),
+            fontFamily: "PoppinsBold",
+          ),
+        ),
+      ),
+
+      SizedBox(width: w(8)),
+
+      /// 🔹 TEXTO
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "¡Hola, $nameUser!",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: sp(18),
+              fontFamily: "PoppinsBold",
+            ),
+          ),
+          SizedBox(height: h(5)),
+          Text(
+            "Que gusto verte",
+            style: TextStyle(
+              color: Colors.white60,
+              fontSize: sp(13),
+              fontFamily: "Poppins",
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
+          SizedBox(height: h(23)),
+
+            /// ===================== SALDO / HEADER =====================
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: w(20)),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: w(20), vertical: h(23)),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: temaUser == "Oscuro" || temaUser == ""
+                        ? [
+                            const Color.fromRGBO(1, 165, 113, 1),
+                            Colors.green.shade700,
+                          ]
+                        : [Color(0xFFF0F4FF), Color(0xFFD9E2FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20
+                ),
+              ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Saldo disponible",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: sp(13),
+                                fontFamily: "PoppinsBold",
+                              ),
+                            ),
+                            SizedBox(height: h(5)),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: w(300)),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: MoneyCounter(
+                                  amount: saldoUser,
+                                  showBalance: showBalance,
+                                  tema: temaUser,
+                                  animacionInicialCreada: animacionInicialCreada,
+                                  animarSaldo: animarSaldo,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            showBalance ? LucideIcons.eye : LucideIcons.eyeOff,
+                            color: Colors.white70,
+                            size: sp(25),
+                          ),
+                          onPressed: () async {
+                            Vibration.vibrate(duration: 5);
+                            setState(() {
+                              showBalance = !showBalance;
+                            });
+                            await guardarVisSaldo(showBalance);
+                          },
+                        ),
+                      ],
+                    ),
+                    
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(23)),
+
+            /// ===================== ENVIAR / RECIBIR =====================
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: w(24)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Vibration.vibrate(duration: 5),
+                      child: Container(
+                        height: h(54),
+                        decoration: BoxDecoration(
+                          color: const Color.fromRGBO(1, 165, 113, 1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_upward_rounded, color: Colors.white),
+                            SizedBox(width: w(8)),
+                            Text(
+                              "Enviar",
+                              style: TextStyle(
+                                fontSize: sp(15),
+                                fontFamily: "PoppinsBold",
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: w(15)),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Vibration.vibrate(duration: 5),
+                      child: Container(
+                        height: h(54),
+                        decoration: BoxDecoration(
+                          color: const Color.fromRGBO(33, 47, 67, 1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_downward_rounded, color: Colors.white),
+                            SizedBox(width: w(8)),
+                            Text(
+                              "Recibir",
+                              style: TextStyle(
+                                fontSize: sp(15),
+                                fontFamily: "PoppinsBold",
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: h(23)),
+
+            /// ===================== CÓDIGO DE VINCULACIÓN =====================
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: w(23)),
+              child: GestureDetector(
+                onTap: () => Vibration.vibrate(duration: 5),
+                child: Container(
+                  height: h(53),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromRGBO(33, 13, 243, 1),
+                        Colors.blue.shade600,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.account_balance, color: Colors.white, size: sp(17)),
+                      SizedBox(width: w(8)),
+                      Text(
+                        "Ver mi CBU",
+                        style: TextStyle(
+                          fontSize: sp(15),
+                          fontFamily: "PoppinsBold",
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(28)),
+
+            /// ===================== TARJETA =====================
+            Center(
+              child: IgnorePointer(
+                ignoring: (estadoSolicitudTarjeta == "Entregada"
+                    ? true
+                    : false),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(23),
+                  child: Container(
+                    height: h(253),
+                    width: w(400),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(23),
+                      gradient: temaUser == "Oscuro" || temaUser == ""
+                          ? LinearGradient(
+                              colors: [Color(0xFF1B2735), Color(0xFF0D1421)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : LinearGradient(
+                              colors: [
+                                Color.fromRGBO(255, 255, 255, 1),
+                                Color.fromRGBO(255, 255, 255, 1),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                      border: Border.all(
+                        color: Color.fromRGBO(1, 165, 113, 1),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.6),
+                          blurRadius: 15,
+                          offset: Offset(0, 8),
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.hardEdge,
+                      children: [
+                        // Línea animada neón
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(23),
+                            child: SizedBox(
+                              height: h(5),
+                              width: w(400),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final width = constraints.maxWidth;
+                                  return AnimatedBuilder(
+                                    animation: _controllerNeonHorizontal,
+                                    builder: (context, child) {
+                                      double translateX =
+                                          (_controllerNeonHorizontal.value *
+                                              (width + width * w(0.8))) -
+                                          width * w(0.8);
+                                      return Transform.translate(
+                                        offset: Offset(translateX, 0),
+                                        child: child,
+                                      );
+                                    },
+                                    child: Container(
+                                      width: width * w(0.5),
+                                      height: h(5),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.green.withOpacity(0.0),
+                                            Colors.greenAccent.withOpacity(0.8),
+                                            Colors.green.withOpacity(0.0),
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Patrones de tarjetas animadas
+                        Opacity(
+                          opacity: 0.3,
+                          child: AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              return CustomPaint(
+                                size: Size.infinite,
+                                painter: _TarjetasPatternPainter(
+                                  animationValue: _controllerTarjetas.value,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: h(23), left: w(10)),
+                          child: Column(
+                            children: [
+                              SizedBox(height: h(13)),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Icono con animación
+                                  animacionInicialCreada
+                                      ? Container(
+                                          height: h(50),
+                                          width: w(50),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color.fromRGBO(1, 165, 113, 1),
+                                                Colors.green.shade600,
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            LucideIcons.creditCard,
+                                            color: Colors.white,
+                                            size: sp(27),
+                                          ),
+                                        )
+                                      : AnimatedBuilder(
+                                          animation: _controllerInicial2,
+                                          builder: (context, child) {
+                                            final anim = CurvedAnimation(
+                                              parent: _controllerInicial2,
+                                              curve: const Interval(
+                                                0.0,
+                                                0.25,
+                                                curve: Curves.easeOut,
+                                              ),
+                                            );
+                                            return Opacity(
+                                              opacity: anim.value,
+                                              child: Transform.translate(
+                                                offset: Offset(
+                                                  0,
+                                                  20 * (1 - anim.value),
+                                                ),
+                                                child: child,
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            height: h(50),
+                                            width: w(50),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color.fromRGBO(
+                                                    1,
+                                                    165,
+                                                    113,
+                                                    1,
+                                                  ),
+                                                  Colors.green.shade600,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Icon(
+                                              LucideIcons.creditCard,
+                                              color: Colors.white,
+                                              size: sp(27),
+                                            ),
+                                          ),
+                                        ),
+                                  SizedBox(width: w(23)),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Título
+                                      animacionInicialCreada
+                                          ? ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: w(300),
+                                              ),
+                                              child: Text(
+                                                "¡Solicita tu tarjeta\nfísica!",
+                                                style: TextStyle(
+                                                  color:
+                                                      temaUser == "Oscuro" ||
+                                                          temaUser == ""
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: sp(23),
+                                                  fontFamily: "PoppinsBold",
+                                                ),
+                                              ),
+                                            )
+                                          : AnimatedBuilder(
+                                              animation: _controllerInicial2,
+                                              builder: (context, child) {
+                                                final anim = CurvedAnimation(
+                                                  parent: _controllerInicial2,
+                                                  curve: const Interval(
+                                                    0.25,
+                                                    0.5,
+                                                    curve: Curves.easeOut,
+                                                  ),
+                                                );
+                                                return Opacity(
+                                                  opacity: anim.value,
+                                                  child: Transform.translate(
+                                                    offset: Offset(
+                                                      0,
+                                                      15 * (1 - anim.value),
+                                                    ),
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: w(300),
+                                                ),
+                                                child: Text(
+                                                  "¡Solicita tu tarjeta\nfísica!",
+                                                  style: TextStyle(
+                                                    color:
+                                                        temaUser == "Oscuro" ||
+                                                            temaUser == ""
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: sp(23),
+                                                    fontFamily: "PoppinsBold",
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                      SizedBox(height: h(8)),
+                                      // Subtítulo
+                                      animacionInicialCreada
+                                          ? ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: w(300),
+                                              ),
+                                              child: Text(
+                                                "Obtén tu tarjeta física gratuita\ny usala en cualquier lugar del\nmundo.",
+                                                style: TextStyle(
+                                                  color:
+                                                      temaUser == "Oscuro" ||
+                                                          temaUser == ""
+                                                      ? Colors.white
+                                                      : Colors.black54,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: sp(17),
+                                                  fontFamily: "Poppins",
+                                                ),
+                                              ),
+                                            )
+                                          : AnimatedBuilder(
+                                              animation: _controllerInicial2,
+                                              builder: (context, child) {
+                                                final anim = CurvedAnimation(
+                                                  parent: _controllerInicial2,
+                                                  curve: const Interval(
+                                                    0.5,
+                                                    0.75,
+                                                    curve: Curves.easeOut,
+                                                  ),
+                                                );
+                                                return Opacity(
+                                                  opacity: anim.value,
+                                                  child: Transform.translate(
+                                                    offset: Offset(
+                                                      0,
+                                                      15 * (1 - anim.value),
+                                                    ),
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: w(300),
+                                                ),
+                                                child: Text(
+                                                  "Obtén tu tarjeta física gratuita\ny usala en cualquier lugar del\nmundo.",
+                                                  style: TextStyle(
+                                                    color:
+                                                        temaUser == "Oscuro" ||
+                                                            temaUser == ""
+                                                        ? Colors.white
+                                                        : Colors.black54,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: sp(17),
+                                                    fontFamily: "Poppins",
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: h(23)),
+                              // Botón "Solicitar ahora"
+                              animacionInicialCreada
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(width: w(63)),
+                                        GestureDetector(
+                                          child: Container(
+                                            height: h(43),
+                                            width: w(223),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Color.fromRGBO(
+                                                    1,
+                                                    165,
+                                                    113,
+                                                    1,
+                                                  ),
+                                                  Colors.green.shade600,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.5),
+                                                  blurRadius: 13,
+                                                  offset: Offset(0, 8),
+                                                  spreadRadius: 1,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: w(200),
+                                                ),
+                                                child: FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  child: Text(
+                                                    "Solicitar ahora",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: sp(18),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            Vibration.vibrate(duration: 5);
+                                            Navigator.push(
+                                              context,
+                                              PageTransition(
+                                                type: PageTransitionType
+                                                    .leftToRight,
+                                                child: solicitarTarjetaPage(),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  : AnimatedBuilder(
+                                      animation: _controllerInicial2,
+                                      builder: (context, child) {
+                                        final anim = CurvedAnimation(
+                                          parent: _controllerInicial2,
+                                          curve: const Interval(
+                                            0.75,
+                                            1.0,
+                                            curve: Curves.easeOut,
+                                          ),
+                                        );
+                                        return Opacity(
+                                          opacity: anim.value,
+                                          child: Transform.translate(
+                                            offset: Offset(
+                                              0,
+                                              25 * (1 - anim.value),
+                                            ),
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(width: w(63)),
+                                          GestureDetector(
+                                            child: Container(
+                                              height: h(43),
+                                              width: w(223),
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Color.fromRGBO(
+                                                      1,
+                                                      165,
+                                                      113,
+                                                      1,
+                                                    ),
+                                                    Colors.green.shade600,
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
+                                                    blurRadius: 13,
+                                                    offset: Offset(0, 8),
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                    maxWidth: w(200),
+                                                  ),
+                                                  child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text(
+                                                      "Solicitar ahora",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: sp(18),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            onTap: () {
+                                              Vibration.vibrate(duration: 5);
+                                              Navigator.push(
+                                                context,
+                                                PageTransition(
+                                                  type: PageTransitionType
+                                                      .leftToRight,
+                                                  child: solicitarTarjetaPage(),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(30)),
+
+            /// ===================== FUNCIONES PRINCIPALES =====================
+            Padding(
+              padding: EdgeInsets.only(left: w(13)),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Row(
+                  children: [
+                    // Texto "Funcionalidades Principales"
+                    animacionInicialCreada
+                        ? FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              "Funcionalidades Principales",
+                              style: TextStyle(
+                                color: temaUser == "Oscuro" || temaUser == ""
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: sp(20),
+                                fontFamily: "PoppinsBold",
+                              ),
+                            ),
+                          )
+                        : AnimatedBuilder(
+                            animation: _controllerInicial4,
+                            builder: (context, child) {
+                              final anim = CurvedAnimation(
+                                parent: _controllerInicial4,
+                                curve: Interval(
+                                  0.0,
+                                  0.5,
+                                  curve: Curves.easeOut,
+                                ),
+                              );
+                              return Opacity(
+                                opacity: anim.value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20 * (1 - anim.value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "Funcionalidades Principales",
+                                style: TextStyle(
+                                  color: temaUser == "Oscuro" || temaUser == ""
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: sp(20),
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ),
+                          ),
+
+                    SizedBox(width: w(53)),
+
+                    // SmoothPageIndicator
+                    Expanded(
+                      child: animacionInicialCreada
+                          ? SmoothPageIndicator(
+                              controller: _controllerPages,
+                              count: 3,
+                              effect: SwapEffect(
+                                activeDotColor: Color.fromRGBO(1, 165, 113, 1),
+                                dotColor: Colors.white,
+                                dotHeight: 10,
+                                dotWidth: 10,
+                                spacing: 10,
+                              ),
+                            )
+                          : AnimatedBuilder(
+                              animation: _controllerInicial4,
+                              builder: (context, child) {
+                                final anim = CurvedAnimation(
+                                  parent: _controllerInicial4,
+                                  curve: Interval(
+                                    0.5,
+                                    1.0,
+                                    curve: Curves.easeOut,
+                                  ),
+                                );
+                                return Opacity(
+                                  opacity: anim.value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 20 * (1 - anim.value)),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: SmoothPageIndicator(
+                                controller: _controllerPages,
+                                count: 3,
+                                effect: SwapEffect(
+                                  activeDotColor: Color.fromRGBO(
+                                    1,
+                                    165,
+                                    113,
+                                    1,
+                                  ),
+                                  dotColor: Colors.white,
+                                  dotHeight: 10,
+                                  dotWidth: 10,
+                                  spacing: 10,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(33)),
+
+            SizedBox(
+              height: h(300),
+              child: PageView.builder(
+                controller: _controllerPages,
+                itemCount: 3,
+                itemBuilder: (context, index) {
+                  Widget container;
+
+                  switch (index) {
+                    case 0:
+                      container = Container(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: animacionInicialCreada
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                    color: colors[index],
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.6),
+                                        blurRadius: 15,
+                                        offset: Offset(0, 8),
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      // Fondo SVG
+                                      SvgPicture.asset(
+                                        'assets/topography.svg',
+                                        color: Color.fromRGBO(
+                                          75,
+                                          123,
+                                          248,
+                                          1,
+                                        ).withOpacity(0.3),
+                                        fit: BoxFit.cover,
+                                        width: screenWidth,
+                                        height: screenHeight,
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // 👤 Icono superior
+                                          animacionInicialCreada
+                                              ? Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: w(33),
+                                                    top: h(23),
+                                                  ),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.topLeft,
+                                                    child: Container(
+                                                      width: w(60),
+                                                      height: h(60),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color.fromRGBO(
+                                                              75,
+                                                              123,
+                                                              248,
+                                                              1,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                  0.6,
+                                                                ),
+                                                            blurRadius: 15,
+                                                            offset: Offset(
+                                                              0,
+                                                              8,
+                                                            ),
+                                                            spreadRadius: 1,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Center(
+                                                        child: Icon(
+                                                          LucideIcons.userPlus,
+                                                          color: Colors.white,
+                                                          size: sp(25),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : AnimatedBuilder(
+                                                  animation:
+                                                      _controllerInicial5,
+                                                  builder: (context, child) {
+                                                    final anim = CurvedAnimation(
+                                                      parent:
+                                                          _controllerInicial5,
+                                                      curve: Interval(
+                                                        0.0,
+                                                        0.2,
+                                                        curve: Curves.easeOut,
+                                                      ),
+                                                    );
+                                                    return Opacity(
+                                                      opacity: anim.value,
+                                                      child: Transform.translate(
+                                                        offset: Offset(
+                                                          0,
+                                                          20 * (1 - anim.value),
+                                                        ),
+                                                        child: child,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                      top: h(23),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.topLeft,
+                                                      child: Container(
+                                                        width: w(60),
+                                                        height: h(60),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              const Color.fromRGBO(
+                                                                75,
+                                                                123,
+                                                                248,
+                                                                1,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                    0.6,
+                                                                  ),
+                                                              blurRadius: 15,
+                                                              offset: Offset(
+                                                                0,
+                                                                8,
+                                                              ),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            LucideIcons
+                                                                .userPlus,
+                                                            color: Colors.white,
+                                                            size: sp(25),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                          SizedBox(height: h(13)),
+
+                                          // Título "Pago Grupal"
+                                          animacionInicialCreada
+                                              ? Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: w(33),
+                                                  ),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: ConstrainedBox(
+                                                      constraints:
+                                                          BoxConstraints(
+                                                            maxWidth: w(300),
+                                                          ),
+                                                      child: FittedBox(
+                                                        fit: BoxFit.scaleDown,
+                                                        child: Text(
+                                                          "Pago Grupal",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: sp(23),
+                                                            fontFamily:
+                                                                "PoppinsBold",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : AnimatedBuilder(
+                                                  animation:
+                                                      _controllerInicial5,
+                                                  builder: (context, child) {
+                                                    final anim = CurvedAnimation(
+                                                      parent:
+                                                          _controllerInicial5,
+                                                      curve: Interval(
+                                                        0.2,
+                                                        0.4,
+                                                        curve: Curves.easeOut,
+                                                      ),
+                                                    );
+                                                    return Opacity(
+                                                      opacity: anim.value,
+                                                      child: Transform.translate(
+                                                        offset: Offset(
+                                                          0,
+                                                          20 * (1 - anim.value),
+                                                        ),
+                                                        child: child,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth: w(300),
+                                                            ),
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          child: Text(
+                                                            "Pago Grupal",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: sp(23),
+                                                              fontFamily:
+                                                                  "PoppinsBold",
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                          SizedBox(height: h(13)),
+
+                                          // Subtítulo
+                                          animacionInicialCreada
+                                              ? Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: w(33),
+                                                  ),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: ConstrainedBox(
+                                                      constraints:
+                                                          BoxConstraints(
+                                                            maxWidth: w(300),
+                                                          ),
+                                                      child: Text(
+                                                        "Divide gastos con amigos de forma inteligente.",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: sp(18),
+                                                          fontFamily:
+                                                              "PoppinsNormal",
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : AnimatedBuilder(
+                                                  animation:
+                                                      _controllerInicial5,
+                                                  builder: (context, child) {
+                                                    final anim = CurvedAnimation(
+                                                      parent:
+                                                          _controllerInicial5,
+                                                      curve: Interval(
+                                                        0.4,
+                                                        0.6,
+                                                        curve: Curves.easeOut,
+                                                      ),
+                                                    );
+                                                    return Opacity(
+                                                      opacity: anim.value,
+                                                      child: Transform.translate(
+                                                        offset: Offset(
+                                                          0,
+                                                          20 * (1 - anim.value),
+                                                        ),
+                                                        child: child,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth: w(300),
+                                                            ),
+                                                        child: Text(
+                                                          "Divide gastos con amigos de forma inteligente.",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: sp(18),
+                                                            fontFamily:
+                                                                "PoppinsNormal",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                          SizedBox(height: h(23)),
+
+                                          // Botón "Crear Grupo"
+                                          animacionInicialCreada
+                                              ? Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: w(33),
+                                                  ),
+                                                  child: Container(
+                                                    height: h(53),
+                                                    width: w(153),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                            25,
+                                                            60,
+                                                            183,
+                                                            1,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            13,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black
+                                                              .withOpacity(0.5),
+                                                          blurRadius: 13,
+                                                          offset: Offset(0, 8),
+                                                          spreadRadius: 1,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Center(
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth: w(100),
+                                                            ),
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          child: Text(
+                                                            "Crear Grupo",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: sp(18),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  "Poppins",
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : AnimatedBuilder(
+                                                  animation:
+                                                      _controllerInicial5,
+                                                  builder: (context, child) {
+                                                    final anim = CurvedAnimation(
+                                                      parent:
+                                                          _controllerInicial5,
+                                                      curve: Interval(
+                                                        0.6,
+                                                        0.9,
+                                                        curve: Curves.easeOut,
+                                                      ),
+                                                    );
+                                                    return Opacity(
+                                                      opacity: anim.value,
+                                                      child: Transform.translate(
+                                                        offset: Offset(
+                                                          0,
+                                                          20 * (1 - anim.value),
+                                                        ),
+                                                        child: child,
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Container(
+                                                      height: h(53),
+                                                      width: w(153),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color.fromRGBO(
+                                                              25,
+                                                              60,
+                                                              183,
+                                                              1,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              13,
+                                                            ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                            blurRadius: 13,
+                                                            offset: Offset(
+                                                              0,
+                                                              8,
+                                                            ),
+                                                            spreadRadius: 1,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Center(
+                                                        child: ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: w(
+                                                                  100,
+                                                                ),
+                                                              ),
+                                                          child: FittedBox(
+                                                            fit: BoxFit
+                                                                .scaleDown,
+                                                            child: Text(
+                                                              "Crear Grupo",
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: sp(
+                                                                  18,
+                                                                ),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontFamily:
+                                                                    "Poppins",
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                          SizedBox(height: h(23)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : AnimatedBuilder(
+                                  animation: _controllerInicial5,
+                                  builder: (context, child) {
+                                    return Opacity(
+                                      opacity: _controllerInicial5.value,
+                                      child: Transform.translate(
+                                        offset: Offset(
+                                          0,
+                                          20 * (1 - _controllerInicial5.value),
+                                        ),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: colors[index],
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.6),
+                                          blurRadius: 15,
+                                          offset: Offset(0, 8),
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        // Fondo SVG
+                                        SvgPicture.asset(
+                                          'assets/topography.svg',
+                                          color: Color.fromRGBO(
+                                            75,
+                                            123,
+                                            248,
+                                            1,
+                                          ).withOpacity(0.3),
+                                          fit: BoxFit.cover,
+                                          width: screenWidth,
+                                          height: screenHeight,
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // 👤 Icono superior
+                                            animacionInicialCreada
+                                                ? Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                      top: h(23),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.topLeft,
+                                                      child: Container(
+                                                        width: w(60),
+                                                        height: h(60),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              const Color.fromRGBO(
+                                                                75,
+                                                                123,
+                                                                248,
+                                                                1,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                    0.6,
+                                                                  ),
+                                                              blurRadius: 15,
+                                                              offset: Offset(
+                                                                0,
+                                                                8,
+                                                              ),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            LucideIcons
+                                                                .userPlus,
+                                                            color: Colors.white,
+                                                            size: sp(25),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial5,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial5,
+                                                        curve: Interval(
+                                                          0.0,
+                                                          0.2,
+                                                          curve: Curves.easeOut,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            20 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: w(33),
+                                                        top: h(23),
+                                                      ),
+                                                      child: Align(
+                                                        alignment:
+                                                            Alignment.topLeft,
+                                                        child: Container(
+                                                          width: w(60),
+                                                          height: h(60),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                const Color.fromRGBO(
+                                                                  75,
+                                                                  123,
+                                                                  248,
+                                                                  1,
+                                                                ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  10,
+                                                                ),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors
+                                                                    .black
+                                                                    .withOpacity(
+                                                                      0.6,
+                                                                    ),
+                                                                blurRadius: 15,
+                                                                offset: Offset(
+                                                                  0,
+                                                                  8,
+                                                                ),
+                                                                spreadRadius: 1,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          child: Center(
+                                                            child: Icon(
+                                                              LucideIcons
+                                                                  .userPlus,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: sp(25),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                            SizedBox(height: h(13)),
+
+                                            // Título "Pago Grupal"
+                                            animacionInicialCreada
+                                                ? Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth: w(300),
+                                                            ),
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          child: Text(
+                                                            "Pago Grupal",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: sp(23),
+                                                              fontFamily:
+                                                                  "PoppinsBold",
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial5,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial5,
+                                                        curve: Interval(
+                                                          0.2,
+                                                          0.4,
+                                                          curve: Curves.easeOut,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            20 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: w(33),
+                                                      ),
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: w(
+                                                                  300,
+                                                                ),
+                                                              ),
+                                                          child: FittedBox(
+                                                            fit: BoxFit
+                                                                .scaleDown,
+                                                            child: Text(
+                                                              "Pago Grupal",
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: sp(
+                                                                  23,
+                                                                ),
+                                                                fontFamily:
+                                                                    "PoppinsBold",
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                            SizedBox(height: h(13)),
+
+                                            // Subtítulo
+                                            animacionInicialCreada
+                                                ? Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth: w(300),
+                                                            ),
+                                                        child: Text(
+                                                          "Divide gastos con amigos de forma inteligente.",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: sp(18),
+                                                            fontFamily:
+                                                                "PoppinsNormal",
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial5,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial5,
+                                                        curve: Interval(
+                                                          0.4,
+                                                          0.6,
+                                                          curve: Curves.easeOut,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            20 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: w(33),
+                                                      ),
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: w(
+                                                                  300,
+                                                                ),
+                                                              ),
+                                                          child: Text(
+                                                            "Divide gastos con amigos de forma inteligente.",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: sp(18),
+                                                              fontFamily:
+                                                                  "PoppinsNormal",
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                            SizedBox(height: h(23)),
+
+                                            // Botón "Crear Grupo"
+                                            animacionInicialCreada
+                                                ? Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: w(33),
+                                                    ),
+                                                    child: Container(
+                                                      height: h(53),
+                                                      width: w(153),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color.fromRGBO(
+                                                              25,
+                                                              60,
+                                                              183,
+                                                              1,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              13,
+                                                            ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                            blurRadius: 13,
+                                                            offset: Offset(
+                                                              0,
+                                                              8,
+                                                            ),
+                                                            spreadRadius: 1,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Center(
+                                                        child: ConstrainedBox(
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                maxWidth: w(
+                                                                  100,
+                                                                ),
+                                                              ),
+                                                          child: FittedBox(
+                                                            fit: BoxFit
+                                                                .scaleDown,
+                                                            child: Text(
+                                                              "Crear Grupo",
+                                                              style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: sp(
+                                                                  18,
+                                                                ),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontFamily:
+                                                                    "Poppins",
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial5,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial5,
+                                                        curve: Interval(
+                                                          0.6,
+                                                          0.9,
+                                                          curve: Curves.easeOut,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            20 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: w(33),
+                                                      ),
+                                                      child: Container(
+                                                        height: h(53),
+                                                        width: w(153),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              const Color.fromRGBO(
+                                                                25,
+                                                                60,
+                                                                183,
+                                                                1,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                13,
+                                                              ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                    0.5,
+                                                                  ),
+                                                              blurRadius: 13,
+                                                              offset: Offset(
+                                                                0,
+                                                                8,
+                                                              ),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Center(
+                                                          child: ConstrainedBox(
+                                                            constraints:
+                                                                BoxConstraints(
+                                                                  maxWidth: w(
+                                                                    100,
+                                                                  ),
+                                                                ),
+                                                            child: FittedBox(
+                                                              fit: BoxFit
+                                                                  .scaleDown,
+                                                              child: Text(
+                                                                "Crear Grupo",
+                                                                style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: sp(
+                                                                    18,
+                                                                  ),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  fontFamily:
+                                                                      "Poppins",
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                            SizedBox(height: h(23)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      );
+
+                      break;
+                    case 1:
+                      container = ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colors[index],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Stack(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: Color.fromRGBO(
+                                  170,
+                                  65,
+                                  243,
+                                  1,
+                                ).withOpacity(0.3), // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: w(33),
+                                      top: h(23),
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Container(
+                                            width: w(60),
+                                            height: h(60),
+                                            decoration: BoxDecoration(
+                                              color: Color.fromRGBO(
+                                                170,
+                                                65,
+                                                243,
+                                                1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(
+                                                        0.6,
+                                                      ), // sombra oscura
+                                                  blurRadius:
+                                                      15, // qué tan difusa es
+                                                  offset: Offset(
+                                                    0,
+                                                    8,
+                                                  ), // desplazamiento (x, y)
+                                                  spreadRadius:
+                                                      1, // qué tanto se expande
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                LucideIcons.mapPin,
+                                                color: Colors.white,
+                                                size: sp(25),
+                                              ),
+                                            ),
+                                          ),
+                                          // Círculo De Busqueda
+                                          Positioned(
+                                            // posición relativa dentro del container
+                                            top: h(-5),
+                                            right: w(-10),
+                                            child: AnimatedBuilder(
+                                              animation:
+                                                  _controllerPointCercanos,
+                                              builder: (context, child) {
+                                                return Transform.scale(
+                                                  scale:
+                                                      _scaleAnimationPointCercanos
+                                                          .value,
+                                                  child: Opacity(
+                                                    opacity:
+                                                        _opacityAnimationPointCercanos
+                                                            .value,
+                                                    child: Container(
+                                                      width: w(20),
+                                                      height: h(20),
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: Color.fromRGBO(
+                                                          1,
+                                                          165,
+                                                          113,
+                                                          1,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: Colors.white,
+                                                          width: w(1),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: h(13)),
+
+                                  Padding(
+                                    padding: EdgeInsets.only(left: w(33)),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(300),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Usuarios Cercanos",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: sp(23),
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: h(13)),
+                                  Padding(
+                                    padding: EdgeInsets.only(left: w(33)),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(280),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Conecta con personas en tu área.",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: sp(17),
+                                              fontFamily: "PoppinsNormal",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: h(23)),
+
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.only(left: w(33)),
+                                          child: Container(
+                                            height: h(53),
+                                            width: w(153),
+                                            decoration: BoxDecoration(
+                                              color: Color.fromRGBO(
+                                                170,
+                                                65,
+                                                243,
+                                                1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(13),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(
+                                                        0.5,
+                                                      ), // sombra oscura
+                                                  blurRadius:
+                                                      13, // qué tan difusa es
+                                                  offset: Offset(
+                                                    0,
+                                                    8,
+                                                  ), // desplazamiento (x, y)
+                                                  spreadRadius:
+                                                      1, // qué tanto se expande
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: w(100),
+                                                ),
+                                                child: FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  child: Text(
+                                                    "Explorar",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: sp(18),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      break;
+                    case 2:
+                      container = ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colors[index],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Stack(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: Color.fromRGBO(
+                                  225,
+                                  137,
+                                  70,
+                                  1,
+                                ).withOpacity(0.3), // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: w(33),
+                                      top: h(23),
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Container(
+                                            width: w(60),
+                                            height: h(60),
+                                            decoration: BoxDecoration(
+                                              color: Color.fromRGBO(
+                                                225,
+                                                137,
+                                                70,
+                                                1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(
+                                                        0.6,
+                                                      ), // sombra oscura
+                                                  blurRadius:
+                                                      15, // qué tan difusa es
+                                                  offset: Offset(
+                                                    0,
+                                                    8,
+                                                  ), // desplazamiento (x, y)
+                                                  spreadRadius:
+                                                      1, // qué tanto se expande
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                LucideIcons.users,
+                                                color: Colors.white,
+                                                size: 25,
+                                              ),
+                                            ),
+                                          ),
+                                          // Círculos Cuenta Compartida
+                                          // Primer círculo
+                                          Positioned(
+                                            bottom: h(3),
+                                            right: w(-13),
+                                            child: AnimatedBuilder(
+                                              animation: _dot1Animation,
+                                              builder: (context, child) {
+                                                return Transform.translate(
+                                                  offset: Offset(
+                                                    0,
+                                                    _dot1Animation.value,
+                                                  ),
+                                                  child: Container(
+                                                    width: w(18),
+                                                    height: h(18),
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Color.fromRGBO(
+                                                        1,
+                                                        165,
+                                                        113,
+                                                        1,
+                                                      ),
+                                                      border: Border.all(
+                                                        color: Colors.white,
+                                                        width: w(0.5),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          // Segundo círculo
+                                          Positioned(
+                                            bottom: h(3),
+                                            right: w(-53),
+                                            child: AnimatedBuilder(
+                                              animation: _dot2Animation,
+                                              builder: (context, child) {
+                                                return Transform.translate(
+                                                  offset: Offset(
+                                                    0,
+                                                    _dot2Animation.value,
+                                                  ),
+                                                  child: Container(
+                                                    width: w(118),
+                                                    height: h(18),
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.blue,
+                                                      border: Border.all(
+                                                        color: Colors.white,
+                                                        width: w(0.5),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: h(13)),
+
+                                  Padding(
+                                    padding: EdgeInsets.only(left: w(33)),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(300),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Cuenta Compartida",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: sp(23),
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: h(13)),
+                                  Padding(
+                                    padding: EdgeInsets.only(left: w(33)),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(285),
+                                        ),
+                                        child: Text(
+                                          "Administra fondos con otras personas.",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: sp(18),
+                                            fontFamily: "PoppinsNormal",
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: h(23)),
+
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.only(left: w(33)),
+                                          child: Container(
+                                            height: h(53),
+                                            width: w(153),
+                                            decoration: BoxDecoration(
+                                              color: Color.fromRGBO(
+                                                225,
+                                                137,
+                                                70,
+                                                1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(13),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(
+                                                        0.5,
+                                                      ), // sombra oscura
+                                                  blurRadius:
+                                                      13, // qué tan difusa es
+                                                  offset: Offset(
+                                                    0,
+                                                    8,
+                                                  ), // desplazamiento (x, y)
+                                                  spreadRadius:
+                                                      1, // qué tanto se expande
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: w(100),
+                                                ),
+                                                child: FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  child: Text(
+                                                    "Crear Cuenta",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: sp(18),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      break;
+                    default:
+                      container = Container();
+                  }
+
+                  // Agregamos espacio horizontal entre containers
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: w(13)),
+                    child: container,
+                  );
+                },
+              ),
+            ),
+
+            SizedBox(height: h(30)),
+
+            /// ===================== FUNCIONES SECUNDARIAS =====================
+            Padding(
+              padding: EdgeInsets.only(left: w(13)),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "Otras Funcionalidades",
+                    style: TextStyle(
+                      color: temaUser == "Oscuro" || temaUser == ""
+                          ? Colors.white
+                          : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: sp(20),
+                      fontFamily: "PoppinsBold",
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: h(33)),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: w(23)),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      //Comprar Dolares
+                      Container(
+                        height: h(213),
+                        width: w(150),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(23),
+                          color: temaUser == "Oscuro" || temaUser == ""
+                              ? const Color(0x172135)
+                              : Colors.green.withOpacity(0.3),
+                          border: Border.all(
+                            color: Colors.green.withOpacity(0.5),
+                            width: w(0.5),
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(23),
+                              child: SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: temaUser == "Oscuro" || temaUser == ""
+                                    ? Colors.green.withOpacity(0.08)
+                                    : Colors.green, // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: w(23),
+                                    top: h(13),
+                                  ),
+                                  child: Container(
+                                    height: h(50),
+                                    width: w(50),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          const Color.fromRGBO(1, 165, 113, 1),
+                                          Colors.green.shade600,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: Icon(
+                                      LucideIcons.dollarSign,
+                                      color: Colors.white,
+                                      size: sp(20),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(100),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        "Compra USD",
+                                        style: TextStyle(
+                                          color:
+                                              temaUser == "Oscuro" ||
+                                                  temaUser == ""
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontFamily: "Poppins",
+                                          fontSize: sp(17),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(5)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(113),
+                                    ),
+                                    child: Text(
+                                      "Compra dólares al mejor precio.",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.grey
+                                            : Colors.black54,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(13),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Center(
+                                  child: Container(
+                                    height: h(43),
+                                    width: w(123),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          const Color.fromRGBO(1, 165, 113, 1),
+                                          Colors.green.shade600,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            0.5,
+                                          ), // sombra oscura
+                                          blurRadius: 13,
+                                          offset: const Offset(0, 8),
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(100),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Comprar",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: sp(17),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: w(15)),
+                      //Ahorros
+                      Container(
+                        height: h(213),
+                        width: w(150),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(23),
+                          color: temaUser == "Oscuro" || temaUser == ""
+                              ? const Color(0x172135)
+                              : Color.fromRGBO(233, 0, 125, 1).withOpacity(0.3),
+                          border: Border.all(
+                            color: Color.fromRGBO(
+                              233,
+                              0,
+                              125,
+                              1,
+                            ).withOpacity(0.5),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(23),
+                              child: SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: temaUser == "Oscuro" || temaUser == ""
+                                    ? Color.fromRGBO(
+                                        233,
+                                        0,
+                                        125,
+                                        1,
+                                      ).withOpacity(0.2)
+                                    : Color.fromRGBO(
+                                        233,
+                                        0,
+                                        125,
+                                        1,
+                                      ), // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: w(23),
+                                    top: h(13),
+                                  ),
+                                  child: Container(
+                                    height: h(50),
+                                    width: w(50),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromARGB(255, 198, 0, 105),
+                                          Colors.pink,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: Icon(
+                                      LucideIcons.piggyBank,
+                                      color: Colors.white,
+                                      size: sp(23),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(100),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        "Ahorros",
+                                        style: TextStyle(
+                                          color:
+                                              temaUser == "Oscuro" ||
+                                                  temaUser == ""
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontFamily: "Poppins",
+                                          fontSize: sp(17),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(5)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(113),
+                                    ),
+                                    child: Text(
+                                      "Guarda dinero para tus objetivos.",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.grey
+                                            : Colors.black54,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(13),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Center(
+                                  child: Container(
+                                    height: h(43),
+                                    width: w(123),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromARGB(255, 198, 0, 105),
+                                          Colors.pink,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            0.5,
+                                          ), // sombra oscura
+                                          blurRadius: 13,
+                                          offset: const Offset(0, 8),
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(113),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Ahorrar",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: sp(17),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(13)),
+                  //Segunda Fila
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      //Prestamos Express
+                      Container(
+                        height: h(233),
+                        width: w(150),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(23),
+                          color: temaUser == "Oscuro" || temaUser == ""
+                              ? const Color(0x172135)
+                              : Color.fromRGBO(
+                                  138,
+                                  73,
+                                  253,
+                                  1,
+                                ).withOpacity(0.3),
+                          border: Border.all(
+                            color: Color.fromRGBO(
+                              138,
+                              73,
+                              253,
+                              1,
+                            ).withOpacity(0.5),
+                            width: w(0.5),
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(23),
+                              child: SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: temaUser == "Oscuro" || temaUser == ""
+                                    ? Color.fromRGBO(
+                                        138,
+                                        73,
+                                        253,
+                                        1,
+                                      ).withOpacity(0.1)
+                                    : Color.fromRGBO(
+                                        138,
+                                        73,
+                                        253,
+                                        1,
+                                      ), // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: w(23),
+                                    top: h(13),
+                                  ),
+                                  child: Container(
+                                    height: h(50),
+                                    width: w(50),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromRGBO(138, 73, 253, 1),
+                                          Colors.purple.shade600,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: Icon(
+                                      LucideIcons.zap,
+                                      color: Colors.white,
+                                      size: sp(20),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(113),
+                                    ),
+                                    child: Text(
+                                      "Préstamos\nExpress",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(17),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(5)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(113),
+                                    ),
+                                    child: Text(
+                                      "Dinero rápido y seguro.",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.grey
+                                            : Colors.black54,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(13),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Center(
+                                  child: Container(
+                                    height: h(43),
+                                    width: w(123),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromRGBO(138, 73, 253, 1),
+                                          Colors.purple.shade600,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            0.5,
+                                          ), // sombra oscura
+                                          blurRadius: 13,
+                                          offset: const Offset(0, 8),
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(113),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Solicitar",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: sp(17),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: w(15)),
+                      //Programar Pagos
+                      Container(
+                        height: h(233),
+                        width: w(150),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(23),
+                          color: temaUser == "Oscuro" || temaUser == ""
+                              ? const Color(0x172135)
+                              : Color.fromRGBO(88, 75, 253, 1).withOpacity(0.3),
+                          border: Border.all(
+                            color: Color.fromRGBO(
+                              88,
+                              75,
+                              253,
+                              1,
+                            ).withOpacity(0.5),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(23),
+                              child: SvgPicture.asset(
+                                'assets/topography.svg',
+                                color: temaUser == "Oscuro" || temaUser == ""
+                                    ? Color.fromRGBO(
+                                        88,
+                                        75,
+                                        253,
+                                        1,
+                                      ).withOpacity(0.2)
+                                    : Color.fromRGBO(
+                                        88,
+                                        75,
+                                        253,
+                                        1,
+                                      ), // color del patrón
+                                fit: BoxFit.cover,
+                                width: screenWidth,
+                                height: screenHeight,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: w(23),
+                                    top: h(13),
+                                  ),
+                                  child: Container(
+                                    height: h(50),
+                                    width: w(50),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromRGBO(88, 75, 253, 1),
+                                          Colors.blue,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: Icon(
+                                      LucideIcons.timer,
+                                      color: Colors.white,
+                                      size: sp(20),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(113),
+                                    ),
+                                    child: Text(
+                                      "Programar Pagos",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(17),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(5)),
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(23)),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: w(150),
+                                    ),
+                                    child: Text(
+                                      "Programa pagos automáticos.",
+                                      style: TextStyle(
+                                        color:
+                                            temaUser == "Oscuro" ||
+                                                temaUser == ""
+                                            ? Colors.grey
+                                            : Colors.black54,
+                                        fontFamily: "Poppins",
+                                        fontSize: sp(13),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: h(13)),
+                                Center(
+                                  child: Container(
+                                    height: h(43),
+                                    width: w(123),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color.fromRGBO(88, 75, 253, 1),
+                                          Colors.blue,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(13),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            0.5,
+                                          ), // sombra oscura
+                                          blurRadius: 13,
+                                          offset: const Offset(0, 8),
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: w(113),
+                                        ),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            "Programar",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: sp(17),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "PoppinsBold",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: h(30)),
+          ],
+        ),
+      ),
+    );
+  }
+  //fin Test ui 5
 
   Widget inicioPage() {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -17084,3 +20069,4 @@ class _TarjetasPatternPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _TarjetasPatternPainter oldDelegate) => true;
 }
+

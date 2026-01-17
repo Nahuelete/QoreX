@@ -368,17 +368,30 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
                     child: Icon(LucideIcons.arrowLeft, color: Colors.white),
                   ),
                   onTap: () {
+                    if (currentStep == 1) {
+
                     Vibration.vibrate(duration: 5);
-                    if (FocusManager.instance.primaryFocus != null) {
-                      FocusManager.instance.primaryFocus!.unfocus();
+                      if (FocusManager.instance.primaryFocus != null) {
+                        FocusManager.instance.primaryFocus!.unfocus();
+                      }
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child: inicioPage(),
+                        ),
+                      );
+                    } else {
+                      setState(() {
+                        currentStep = 1;
+                      });
+                      _focusEmail.addListener(_onEmailFocusChange);
+                      _focusPassword.addListener(_onPasswordFocusChange);
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) _focusEmail.requestFocus();
+                      });
                     }
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: inicioPage(),
-                      ),
-                    );
                   },
                 ),
                 SizedBox(width: w(10)),
