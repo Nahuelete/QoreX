@@ -305,6 +305,7 @@ class _SplashscreenState extends State<Splashscreen>
     double h(double height) => height / 932 * screenHeight;
     double sp(double size) =>
         size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
     return Stack(
       children: [
         /*

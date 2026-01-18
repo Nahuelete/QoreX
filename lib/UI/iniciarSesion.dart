@@ -56,6 +56,8 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
   String emailUser = "";
   String avatarUser = "";
   String iniciales = "";
+  String colorUser = "";
+  Color colorUI = Color.fromRGBO(1, 165, 113, 1);
 
   //Iniciar Sesion
   final storage = FlutterSecureStorage();
@@ -99,9 +101,11 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
           apellidoUser = data["Apellido"];
           emailUser = data["Email"];
           avatarUser = data["Avatar"] ?? "";
+          colorUser = data["Color"] ?? "";
           iniciales = nombreUser.isNotEmpty && apellidoUser.isNotEmpty
               ? "${nombreUser[0]}${apellidoUser[0]}".toUpperCase()
               : "";
+          colorUI = obtenerColor(colorUser);
           cargando = false;
           currentStep = 2;
         });
@@ -122,6 +126,21 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
       setState(() {
         cargando = false;
       });
+    }
+  }
+
+  Color obtenerColor(String color) {
+    switch (color) {
+      case "Verde":
+        return const Color.fromRGBO(1, 165, 113, 1);
+      case "Azul":
+        return const Color.fromRGBO(33, 13, 243, 1);
+      case "Naranja":
+        return const Color.fromRGBO(200, 90, 0, 1);
+      case "Violeta":
+        return const Color.fromRGBO(165, 53, 253, 1);
+      default:
+        return const Color.fromRGBO(1, 165, 113, 1);
     }
   }
 
@@ -150,6 +169,13 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
         claveValida = true;
         claveErronea = false;
       });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('codeUser', uidUser);
+      await prefs.setString(
+        'claveUser',
+        _controllerPasswordLogin.text.trim() + "000",
+      );
 
       await storage.write(key: 'codeUser', value: uidUser);
       await storage.write(
@@ -369,8 +395,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
                   ),
                   onTap: () {
                     if (currentStep == 1) {
-
-                    Vibration.vibrate(duration: 5);
+                      Vibration.vibrate(duration: 5);
                       if (FocusManager.instance.primaryFocus != null) {
                         FocusManager.instance.primaryFocus!.unfocus();
                       }

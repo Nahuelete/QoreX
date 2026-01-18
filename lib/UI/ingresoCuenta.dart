@@ -1,4 +1,4 @@
-// ignore_for_file: camel_case_types, file_names, unused_field, prefer_final_fields, unused_import, prefer_interpolation_to_compose_strings, deprecated_member_use, avoid_print, unused_local_variable, use_build_context_synchronously, use_key_in_widget_constructors, unused_element
+// ignore_for_file: camel_case_types, file_names, unused_field, prefer_final_fields, unused_import, prefer_interpolation_to_compose_strings, deprecated_member_use, avoid_print, unused_local_variable, use_build_context_synchronously, use_key_in_widget_constructors, unused_element, override_on_non_overriding_member, no_leading_underscores_for_local_identifiers, sized_box_for_whitespace
 
 import 'dart:convert';
 
@@ -25,7 +25,7 @@ class ingresoPage extends StatefulWidget {
 }
 
 class _ingresoPageState extends State<ingresoPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   //Controller
   final TextEditingController _controllerClave = TextEditingController();
 
@@ -38,7 +38,12 @@ class _ingresoPageState extends State<ingresoPage>
   String claveUser = "";
   String iniciales = "";
   String temaUser = "";
+  String colorUser = "";
+  Color colorUI = Color.fromRGBO(1, 165, 113, 1);
   bool faceIdUser = false;
+
+  //Face ID
+  bool biometriaSolicitada = false;
 
   //Focus
   FocusNode? _focusClave;
@@ -87,12 +92,14 @@ class _ingresoPageState extends State<ingresoPage>
               apellidoUser = data["Apellido"] ?? "";
               emailUser = data["Email"] ?? "";
               claveUser = data["Clave"] ?? "";
+              colorUser = data["Color"] ?? "";
               uidUser = data["Uid"] ?? "";
               faceIdUser = data["Face ID"] ?? false;
               temaUser = data["Tema"] ?? "Oscuro";
               iniciales = nombreUser.isNotEmpty && apellidoUser.isNotEmpty
                   ? "${nombreUser[0]}${apellidoUser[0]}".toUpperCase()
                   : "";
+              colorUI = obtenerColor(colorUser);
             });
 
             if (faceIdUser) {
@@ -102,6 +109,21 @@ class _ingresoPageState extends State<ingresoPage>
             }
           }
         });
+  }
+
+  Color obtenerColor(String color) {
+    switch (color) {
+      case "Verde":
+        return const Color.fromRGBO(1, 165, 113, 1);
+      case "Azul":
+        return const Color.fromRGBO(33, 13, 243, 1);
+      case "Naranja":
+        return const Color.fromRGBO(200, 90, 0, 1);
+      case "Violeta":
+        return const Color.fromRGBO(165, 53, 253, 1);
+      default:
+        return const Color.fromRGBO(1, 165, 113, 1);
+    }
   }
 
   //Teclado Virtual
@@ -168,8 +190,6 @@ class _ingresoPageState extends State<ingresoPage>
     // Guardar como String ISO (recomendado)
     await prefs.setString('horaResetIntentos', horaMas10.toIso8601String());
     await prefs.setInt('cantidadIntentos', cantidadIntentos);
-
-    print(prefs.get('horaResetIntentos'));
   }
 
   Future<void> verificarTiempoIntentos() async {
@@ -262,7 +282,7 @@ class _ingresoPageState extends State<ingresoPage>
           });
         });
       }
-    } 
+    }
   }
 
   //Iniciar Sesion
@@ -309,6 +329,10 @@ class _ingresoPageState extends State<ingresoPage>
       await guardarDatos(uidUser, (_controllerClave.text.trim() + "000"));
 
       await storage.write(key: 'codeUser', value: uidUser);
+      await storage.write(
+        key: 'claveUser',
+        value: _controllerClave.text.trim() + "000",
+      );
 
       // ⏳ Espera visual
       //Agregar vibracion "Candado"
@@ -331,7 +355,7 @@ class _ingresoPageState extends State<ingresoPage>
 
       if (!mounted) return;
       //showFlushbar(context, "La contraseña es incorrecta.");
-      
+
       /*
       setState(() {
         cantidadIntentos -= 1;
@@ -379,7 +403,6 @@ class _ingresoPageState extends State<ingresoPage>
         });
       });
       */
-
     } catch (e) {
       // ❌ ERROR DESCONOCIDO
       print("Error iniciarSesion: $e");
@@ -429,12 +452,22 @@ class _ingresoPageState extends State<ingresoPage>
 
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // 🔑 Poner la clave en el TextField (opcional, para feedback visual)
       setState(() {
         _controllerClave.text = claveGuardada;
       });
 
       await Future.delayed(const Duration(milliseconds: 800));
+
+      // SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('codeUser', uidUser);
+      await prefs.setString('claveUser', _controllerClave.text.trim() + "000");
+
+      await storage.write(key: 'codeUser', value: uidUser);
+      await storage.write(
+        key: 'claveUser',
+        value: _controllerClave.text.trim(),
+      );
 
       // ✅ Clave correcta, iniciar sesión local
       setState(() {
@@ -442,8 +475,6 @@ class _ingresoPageState extends State<ingresoPage>
         claveErronea = false;
         uidUser = uidGuardado;
       });
-
-      await Future.delayed(const Duration(milliseconds: 800));
 
       setState(() {
         currentStep = 2;
@@ -485,6 +516,11 @@ class _ingresoPageState extends State<ingresoPage>
 
   Future<void> solicitarBiometria() async {
     if (!cuentaBloqueada) {
+      setState(() {
+        currentStep = 0;
+        biometriaSolicitada = true;
+      });
+
       bool canCheck = await localAuth.canCheckBiometrics;
       bool authenticated = false;
 
@@ -494,6 +530,8 @@ class _ingresoPageState extends State<ingresoPage>
         print('El dispositivo no soporta biometría');
         setState(() {
           faceIdUser = false;
+          biometriaSolicitada = false;
+          currentStep = 1;
         });
         return;
       }
@@ -509,6 +547,11 @@ class _ingresoPageState extends State<ingresoPage>
       } on PlatformException catch (e) {
         print("Error de biometría: ${e.code}");
 
+        setState(() {
+          currentStep = 1;
+          biometriaSolicitada = false;
+        });
+
         if (e.code == "NotEnrolled" ||
             e.code == "LockedOut" ||
             e.code == "PermanentlyLockedOut") {
@@ -517,6 +560,10 @@ class _ingresoPageState extends State<ingresoPage>
 
         if (e.code == "Canceled") {
           print("El usuario canceló la autenticación");
+          setState(() {
+            currentStep = 1;
+            biometriaSolicitada = false;
+          });
           return;
         }
       }
@@ -525,6 +572,10 @@ class _ingresoPageState extends State<ingresoPage>
         iniciarSesionFaceID();
       } else {
         print('Autenticación biométrica fallida');
+        setState(() {
+          currentStep = 1;
+          biometriaSolicitada = false;
+        });
       }
     }
   }
@@ -532,6 +583,9 @@ class _ingresoPageState extends State<ingresoPage>
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
     leerShared();
 
     obtenerDatos();
@@ -565,6 +619,7 @@ class _ingresoPageState extends State<ingresoPage>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // 🔑 CLAVE
     _shakeController.dispose();
     _focusClave?.dispose();
     super.dispose();
@@ -623,13 +678,15 @@ class _ingresoPageState extends State<ingresoPage>
               surfaceTintColor: Colors.transparent,
               automaticallyImplyLeading: false,
               title: Center(
-                child: Image.asset(
-                  temaUser == "Oscuro"
-                      ? "assets/logoAppCompleto.png"
-                      : "assets/logoAppCompletoNegro.png",
-                  height: h(100),
-                  width: w(100),
-                ),
+                child: currentStep == 1 || currentStep == 2
+                    ? Image.asset(
+                        temaUser == "Oscuro"
+                            ? "assets/logoAppCompleto.png"
+                            : "assets/logoAppCompletoNegro.png",
+                        height: h(100),
+                        width: w(100),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -664,7 +721,9 @@ class _ingresoPageState extends State<ingresoPage>
                     ),
                   );
                 },
-                child: currentStep == 1
+                child: currentStep == 0
+                    ? focusPerdido(key: const ValueKey('focus perdido'))
+                    : currentStep == 1
                     ? ingresar(key: const ValueKey('ingresar'))
                     : currentStep == 2
                     ? ingresandoCuenta(key: const ValueKey('loading'))
@@ -721,7 +780,7 @@ class _ingresoPageState extends State<ingresoPage>
                         height: w(88),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color.fromRGBO(1, 165, 113, 1),
+                          color: colorUI,
                         ),
                         child: Center(
                           child: Text(
@@ -928,7 +987,6 @@ class _ingresoPageState extends State<ingresoPage>
 
             SizedBox(height: h(13)),
 
-
             Spacer(),
 
             /// BOTÓN OLVIDE CLAVE
@@ -1088,7 +1146,7 @@ class _ingresoPageState extends State<ingresoPage>
                       height: w(73),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color.fromRGBO(1, 165, 113, 1),
+                        color: colorUI,
                       ),
                       child: Center(
                         child: Text(
@@ -1152,6 +1210,89 @@ class _ingresoPageState extends State<ingresoPage>
     );
   }
 
+  //Focus Perdido
+  Widget focusPerdido({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return Stack(
+      children: [
+        // 🔹 Contenido principal
+        SafeArea(
+          child: Container(
+            width: screenWidth,
+            height: screenHeight,
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // centra horizontalmente
+              children: [
+                SizedBox(
+                  height: h(200),
+                ), // 🔹 distancia desde arriba (ajustá a gusto)
+                Center(
+                  child: Image.asset(
+                    "assets/logoApp.png",
+                    height: h(83),
+                    width: w(83),
+                  ),
+                ),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: w(400)),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Qore",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: "PoppinsBold",
+                              fontSize: sp(38),
+                            ),
+                          ),
+                          TextSpan(
+                            text: "X",
+                            style: TextStyle(
+                              color: Color(0xFF01A571),
+                              fontFamily: "PoppinsBold",
+                              fontSize: sp(38),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: h(5)),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: w(300)),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      "Tu dinero, siempre con vos.",
+                      style: TextStyle(
+                        color: Colors.white60,
+                        fontFamily: "PoppinsBold",
+                        fontSize: sp(20),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   //Extras
   Widget _tecla({
     required String texto,
@@ -1189,7 +1330,7 @@ class _ingresoPageState extends State<ingresoPage>
     required double Function(double) w,
     required VoidCallback onTap,
     bool esFaceId = false,
-}) {
+  }) {
     final bool habilitado = !esFaceId || faceIdUser;
 
     return GestureDetector(
@@ -1230,5 +1371,4 @@ class _ingresoPageState extends State<ingresoPage>
       ),
     );
   }
-
 }

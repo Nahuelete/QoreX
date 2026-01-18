@@ -1,4 +1,4 @@
-// ignore_for_file: camel_case_types, use_key_in_widget_constructors, deprecated_member_use, avoid_print, curly_braces_in_flow_control_structures, unused_field, unused_element, use_build_context_synchronously, prefer_final_fields, unused_local_variable, unnecessary_string_interpolations, unrelated_type_equality_checks, invalid_use_of_protected_member, prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, control_flow_in_finally, unnecessary_null_comparison, no_leading_underscores_for_local_identifiers, sort_child_properties_last
+// ignore_for_file: camel_case_types, use_key_in_widget_constructors, deprecated_member_use, avoid_print, curly_braces_in_flow_control_structures, unused_field, unused_element, use_build_context_synchronously, prefer_final_fields, unused_local_variable, unnecessary_string_interpolations, unrelated_type_equality_checks, invalid_use_of_protected_member, prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, control_flow_in_finally, unnecessary_null_comparison, no_leading_underscores_for_local_identifiers, sort_child_properties_last, await_only_futures
 
 import 'dart:async';
 import 'dart:convert';
@@ -97,6 +97,10 @@ class _registrarsePageState extends State<registrarsePage>
 
   ///Tema del usuario
   String temaUser = "";
+
+  ///Colors del usuario
+  String colorUser = "";
+  Color colorUI = Color.fromRGBO(1, 165, 113, 1);
 
   ///FaceID del usuario
   bool faceIdUser = false;
@@ -340,6 +344,7 @@ class _registrarsePageState extends State<registrarsePage>
               edadUser = data["edad"] ?? 0;
               telefonoUser = data["telefono"] ?? "";
               generoUser = data["genero"] ?? "";
+              colorUser = data["color"] ?? "";
               claveUser = data["clave"] ?? "";
               aliasUser = data["alias"] ?? "";
               cbuUser = data["cbu"] ?? "";
@@ -348,6 +353,8 @@ class _registrarsePageState extends State<registrarsePage>
               uidUser = data["uid"] ?? "";
               uidTutor = data["uid tutor"] ?? "";
               currentStep = data["paso"] ?? 0;
+
+              colorUI = obtenerColor(colorUser);
             });
 
             if (currentStep == 1) {
@@ -402,6 +409,22 @@ class _registrarsePageState extends State<registrarsePage>
             }
           }
         });
+  }
+
+  //Descifrar Color Usuario
+  Color obtenerColor(String color) {
+    switch (color) {
+      case "Verde":
+        return const Color.fromRGBO(1, 165, 113, 1);
+      case "Azul":
+        return const Color.fromRGBO(33, 13, 243, 1);
+      case "Naranja":
+        return const Color.fromRGBO(200, 90, 0, 1);
+      case "Violeta":
+        return const Color.fromRGBO(165, 53, 253, 1);
+      default:
+        return const Color.fromRGBO(1, 165, 113, 1);
+    }
   }
 
   //Obtener los datos del tutor
@@ -1371,8 +1394,25 @@ class _registrarsePageState extends State<registrarsePage>
   // ================= NOMBRE Y APELLIDO =================
   // =====================================================
 
+  Future<void> generarColor() async {
+    final random = Random();
+
+    // 🎨 Colores posibles
+    final List<String> colores = ["Verde", "Azul", "Naranja", "Violeta"];
+
+    final String colorElegido = colores[random.nextInt(colores.length)];
+
+    setState(() {
+      colorUser = colorElegido;
+    });
+  }
+
   /// Guarda nombre y apellido del usuario
   Future<void> guardarNombreApellido() async {
+    await generarColor();
+
+    colorUI = obtenerColor(colorUser);
+
     setState(() {
       nombreUser =
           _controllerNombre.text[0].toUpperCase() +
@@ -1389,6 +1429,7 @@ class _registrarsePageState extends State<registrarsePage>
     FirebaseFirestore.instance.collection("TempUsers").doc(codeUser).update({
       "nombre": nombreUser,
       "apellido": apellidoUser,
+      "color": colorUser,
     });
 
     avanzarPaso();
@@ -2051,10 +2092,7 @@ class _registrarsePageState extends State<registrarsePage>
       }
 
       await storage.write(key: 'codeUser', value: uidUser);
-      await storage.write(
-        key: 'claveUser',
-        value: _controllerClave.text.trim() + "000",
-      );
+      await storage.write(key: 'claveUser', value: claveUser);
 
       // Habilitar Usuario
       await generarCbuAlias();
@@ -2080,6 +2118,7 @@ class _registrarsePageState extends State<registrarsePage>
         "Saldo": 0,
         "Clave": claveHash,
         "Estado": "Habilitado",
+        "Color": colorUser,
       });
 
       await enviarNotificacionRegistrado();
@@ -2431,7 +2470,7 @@ class _registrarsePageState extends State<registrarsePage>
 
   Future<void> guardarAlias(String alias) async {
     setState(() {
-      aliasUser = alias + ".QX";
+      aliasUser = alias.contains(".QX") ? alias : alias + ".QX";
     });
 
     FirebaseFirestore.instance.collection("TempUsers").doc(codeUser).update({
@@ -2449,7 +2488,7 @@ class _registrarsePageState extends State<registrarsePage>
   // ================= SELECCIONAR TEMA =================
   // =====================================================
   bool temaOscuro = true;
-  String temaSeleccionado = "";
+  String temaSeleccionado = "Oscuro";
 
   Future<void> guardarTema() async {
     setState(() {
@@ -4636,7 +4675,7 @@ class _registrarsePageState extends State<registrarsePage>
                     height: w(64),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color.fromRGBO(1, 165, 113, 1),
+                      color: colorUI,
                     ),
                     child: Center(
                       child: Text(
@@ -6389,7 +6428,7 @@ class _registrarsePageState extends State<registrarsePage>
                           color: Colors.white,
                         ),
                         decoration: InputDecoration(
-                          hintText: "tu_alias",
+                          hintText: aliasUser,
                           hintStyle: TextStyle(
                             color: Colors.white.withOpacity(0.35),
                           ),
