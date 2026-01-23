@@ -170,7 +170,7 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(
@@ -383,7 +383,7 @@ class _recuperarPasswordPageState extends State<recuperarPasswordPage>
                         controller: _controllerEmailRecuperar,
                         focusNode: _focusEmailRecuperar,
                         keyboardType: TextInputType.emailAddress,
-                        cursorColor: Colors.white,
+                        cursorColor: Color.fromRGBO(1, 165, 113, 1),
                         style: TextStyle(
                           fontSize: sp(15),
                           fontFamily: "Poppins",

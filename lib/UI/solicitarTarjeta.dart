@@ -387,7 +387,7 @@ class _solicitarTarjetaPageState extends State<solicitarTarjetaPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1B2735), Color(0xFF0D1421)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(

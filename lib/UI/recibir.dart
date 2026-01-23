@@ -768,7 +768,7 @@ class _recibirPageState extends State<recibirPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(

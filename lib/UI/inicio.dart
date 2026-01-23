@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, camel_case_types, deprecated_member_use, prefer_final_fields, unused_field, sized_box_for_whitespace, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings, unnecessary_import, avoid_unnecessary_containers
+// ignore_for_file: use_key_in_widget_constructors, camel_case_types, deprecated_member_use, prefer_final_fields, unused_field, sized_box_for_whitespace, avoid_print, use_build_context_synchronously, prefer_interpolation_to_compose_strings, unnecessary_import, avoid_unnecessary_containers, unused_element
 
 import 'package:bluetooth/UI/iniciarSesion.dart';
 import 'package:bluetooth/UI/registrarse.dart';
@@ -139,12 +139,19 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(
@@ -152,9 +159,17 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: AppBar(
-            toolbarHeight: 13,
             backgroundColor: Colors.transparent,
             systemOverlayStyle: SystemUiOverlayStyle.light,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Center(
+              child: Image.asset(
+                "assets/logoAppCompleto.png",
+                height: h(100),
+                width: w(100),
+              ),
+            ),
           ),
         ),
         body: Stack(children: [SizedBox(child: ingreso())]),
@@ -193,20 +208,14 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
               children: [
                 /// ================= HEADER =================
                 Padding(
-                  padding: EdgeInsets.only(top: h(6)), // 🔥 sube el header
+                  padding: EdgeInsets.only(top: h(5)),
                   child: SlideTransition(
                     position: _slideHeader,
                     child: FadeTransition(
                       opacity: _fade,
                       child: Column(
                         children: [
-                          Image.asset(
-                            "assets/logoAppCompleto.png",
-                            height: h(90),
-                            width: w(170),
-                            fit: BoxFit.contain,
-                          ),
-                          SizedBox(height: h(10)),
+                          SizedBox(height: h(53)),
                           Text(
                             "Bienvenido",
                             style: TextStyle(
@@ -235,7 +244,7 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                   ),
                 ),
 
-                SizedBox(height: h(28)),
+                SizedBox(height: h(43)),
 
                 /// ================= INDICADORES =================
                 Padding(
@@ -303,7 +312,7 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                 ),
 
                 /// ================= TEXTO ACCIÓN =================
-                SizedBox(height: h(83)),
+                SizedBox(height: h(113)),
 
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: w(55)),

@@ -1,19 +1,20 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("com.google.gms.google-services") // Firebase
 }
 
 android {
-    namespace = "com.example.bluetooth"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace = "com.example.bluetoothhh"
+    compileSdk = 33
 
     defaultConfig {
         applicationId = "com.example.bluetooth"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23
+        targetSdk = 33
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     compileOptions {
@@ -27,7 +28,6 @@ android {
 
     buildTypes {
         release {
-            // En proyectos de producción, aquí deberías agregar tu signingConfig de release
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
@@ -42,14 +42,7 @@ flutter {
     source = "../.."
 }
 
-// Repositorios opcionales si algún plugin los requiere
 repositories {
     google()
     mavenCentral()
 }
-
-
-
-
-
-

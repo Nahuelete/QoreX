@@ -659,10 +659,7 @@ class _notificacionesPageState extends State<notificacionesPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color.fromRGBO(10, 13, 23, 1),
-            Color.fromRGBO(15, 28, 45, 1),
-          ],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(
@@ -1517,7 +1514,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -2006,7 +2005,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -2606,7 +2607,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -2877,7 +2880,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -3179,7 +3184,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(color: Colors.cyan, width: leido ? 1 : 8),
@@ -3824,7 +3831,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -4068,7 +4077,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -4337,7 +4348,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -4592,7 +4605,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -4844,7 +4859,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -5199,7 +5216,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -5554,7 +5573,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -5912,7 +5933,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -6139,7 +6162,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -6391,7 +6416,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -6618,7 +6645,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -6865,7 +6894,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -7112,7 +7143,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -7359,7 +7392,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -7819,7 +7854,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -8079,7 +8116,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -8314,7 +8353,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -8574,7 +8615,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -8809,7 +8852,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -9066,7 +9111,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -9298,7 +9345,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -9525,7 +9574,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -9752,7 +9803,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -9979,7 +10032,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -10206,7 +10261,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -10433,7 +10490,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -10648,7 +10707,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -10950,7 +11011,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(
@@ -11206,7 +11269,9 @@ class _notificacionesPageState extends State<notificacionesPage>
             curve: Curves.easeInOut,
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF101827),
+              gradient: LinearGradient(
+                colors: [Color(0xFF10131A), Color(0xFF161823)],
+              ),
               borderRadius: BorderRadius.circular(23),
               border: Border(
                 left: BorderSide(

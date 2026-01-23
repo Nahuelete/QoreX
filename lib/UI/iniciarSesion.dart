@@ -206,7 +206,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
           .update({"Recordarme": recordarme});
 
       // ⏳ Espera visual
-      await Future.delayed(const Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(seconds: 1));
 
       Vibration.vibrate(duration: 15);
 
@@ -362,7 +362,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(
@@ -637,7 +637,7 @@ class _iniciarSesionPageState extends State<iniciarSesionPage>
                         controller: _controllerEmailLogin,
                         focusNode: _focusEmail,
                         keyboardType: TextInputType.emailAddress,
-                        cursorColor: Colors.white,
+                        cursorColor: Color.fromRGBO(1, 165, 113, 1),
                         style: TextStyle(
                           fontSize: sp(15),
                           fontFamily: "Poppins",

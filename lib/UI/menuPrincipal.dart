@@ -1160,9 +1160,9 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
   String _saludoDelDia() {
     final hour = DateTime.now().hour;
 
-    if (hour >= 6 && hour < 12) {
+    if (hour >= 6 && hour <= 12) {
       return "¡Buen día,";
-    } else if (hour >= 12 && hour < 19) {
+    } else if (hour > 12 && hour < 20) {
       return "¡Buenas tardes,";
     } else {
       return "¡Buenas noches,";
@@ -1188,10 +1188,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                 ? LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color.fromRGBO(10, 13, 23, 1),
-                      Color.fromRGBO(15, 28, 45, 1),
-                    ],
+                    colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
                   )
                 : LinearGradient(
                     begin: Alignment.topCenter,
@@ -1213,8 +1210,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
               child: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                scrolledUnderElevation:
-                    0, // ✅ evita cambio de color al scroll (Flutter 3.7+)
+                scrolledUnderElevation: 0, // evita cambio de color al scroll
                 automaticallyImplyLeading: false,
                 centerTitle: true,
                 systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -1225,117 +1221,109 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                 // 🔥 CLAVE 2: ancho real del leading
                 leadingWidth: w(113),
 
-                // 🔥 CLAVE 3: capa de fondo fija (NO visible, pero estabiliza el color)
+                // 🔥 CLAVE 3: capa de fondo fija
                 flexibleSpace: Container(
                   color: Colors.black.withOpacity(0.0001),
                 ),
 
                 leading: GestureDetector(
-                  child: Center(
-                    child: Image.asset(
-                      "assets/logoAppCompleto.png",
-                      width: w(93),
-                      height: h(93),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
                   onTap: () {
                     _scrollController.animateTo(
                       0,
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
                     );
                   },
+                  child: Padding(
+                    padding: EdgeInsets.only(left: w(3)),
+                    child: Center(
+                      child: Image.asset(
+                        "assets/logoAppCompleto.png",
+                        width: w(73),
+                        height: h(73),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
                 ),
 
-                title: AnimatedBuilder(
-                  animation: _scrollController,
-                  builder: (context, _) {
-                    // 🔥 SWITCH BINARIO (clave)
-                    final bool colapsado = _offset > 140;
+                // ───────────────── TITLE ─────────────────
+                title: Center(
+                  child: AnimatedBuilder(
+                    animation: _scrollController,
+                    builder: (context, _) {
+                      final bool colapsado = _offset > 130;
 
-                    return Padding(
-                      padding: EdgeInsets.only(left: w(15)),
-                      child: SizedBox(
-                        height: h(32),
-                        child: Stack(
-                          alignment: Alignment.centerLeft,
-                          children: [
-                            /// ───────── TEXTO (queda atrás y se oculta)
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 280),
-                              curve: Curves.easeInOutCubic,
-                              opacity: colapsado ? 0 : 1,
-                              child: AnimatedSlide(
-                                duration: const Duration(milliseconds: 320),
-                                curve: Curves.easeInOutCubic,
-                                offset: colapsado
-                                    ? const Offset(-0.1, 0)
-                                    : Offset.zero,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: w(36),
-                                    ), // espacio del avatar
-                                    Text(
-                                      "$nameUser $apellidoUser",
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: w(30),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                /// ───────── TEXTO (QUIETO)
+                                Padding(
+                                  padding: EdgeInsets.only(left: w(31)),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        "$nameUser ${apellidoUser.isNotEmpty ? apellidoUser[0] : ""}.",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: sp(15),
+                                          fontFamily: "PoppinsBold",
+                                        ),
+                                      ),
+                                      SizedBox(width: w(5)),
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: Colors.white70,
+                                        size: sp(20),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                /// ───────── AVATAR (SE DESPLAZA AL CENTRO Y OCULTA)
+                                AnimatedPositioned(
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOutCubic,
+                                  left: colapsado ? 0 : 0,
+                                  child: Container(
+                                    width: w(25),
+                                    height: w(25),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: colorUI,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      iniciales,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: sp(15),
+                                        fontSize: sp(11.8),
                                         fontFamily: "PoppinsBold",
                                       ),
                                     ),
-                                    SizedBox(width: w(5)),
-                                    Icon(
-                                      Icons.keyboard_arrow_down,
-                                      color: Colors.white70,
-                                      size: sp(20),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            /// ───────── AVATAR (se mueve y tapa)
-                            AnimatedAlign(
-                              duration: const Duration(milliseconds: 420),
-                              curve: Curves.easeInOutCubic,
-                              alignment: colapsado
-                                  ? Alignment.center
-                                  : Alignment.centerLeft,
-                              child: AnimatedScale(
-                                duration: const Duration(milliseconds: 420),
-                                curve: Curves.easeInOutCubic,
-                                scale: colapsado ? 1.35 : 1.0,
-                                child: Container(
-                                  width: w(28),
-                                  height: w(28),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colorUI,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    iniciales,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: sp(11.8),
-                                      fontFamily: "PoppinsBold",
-                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
 
+                // ───────────────── ACTIONS ─────────────────
                 actions: [
-                  //Ocultar Saldo
+                  // Ocultar saldo
                   AnimatedSlide(
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut,
@@ -1359,9 +1347,9 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
 
                   SizedBox(width: w(18)),
 
-                  //Notificaciones
+                  // Notificaciones
                   Padding(
-                    padding: EdgeInsets.only(right: w(15)),
+                    padding: EdgeInsets.only(right: w(13)),
                     child: GestureDetector(
                       onTap: () {
                         Vibration.vibrate(duration: 5);
@@ -2203,6 +2191,593 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
     );
   }
 
+  //Test UI
+  Widget a3() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Funciones de adaptación responsiva
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F1117),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          physics: animacionInicialCreada
+              ? const BouncingScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
+          child: Stack(
+            children: [
+              // Patrón SVG coloreable
+              SvgPicture.asset(
+                'assets/overlapping-circles.svg',
+                color: temaUser == "Oscuro" || temaUser == ""
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.black.withOpacity(0.23),
+                fit: BoxFit.cover,
+                width: screenWidth,
+                height: screenHeight,
+              ),
+              Column(
+                children: [
+                  // Header - Nombre + avatar + saldo
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _saludoDelDia(),
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: sp(18),
+                                    fontFamily: "Poppins",
+                                  ),
+                                ),
+                                SizedBox(height: h(1)),
+                                Text(
+                                  "$nameUser!",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: sp(23),
+                                    fontFamily: "PoppinsBold",
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: colorUI,
+                              child: Text(
+                                iniciales,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 28),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Saldo disponible",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: w(300)),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: MoneyCounter(
+                                      amount: saldoUser,
+                                      showBalance: showBalance,
+                                      tema: temaUser,
+                                      animacionInicialCreada:
+                                          animacionInicialCreada,
+                                      animarSaldo: animarSaldo,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.visibility_outlined,
+                                color: Colors.white70,
+                                size: 28,
+                              ),
+                              onPressed: () async {
+                                Vibration.vibrate(duration: 5);
+                                setState(() {
+                                  showBalance = !showBalance;
+                                });
+                                await guardarVisSaldo(showBalance);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            "Ver detalles →",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Botones Enviar / Recibir
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: h(63),
+                            width: w(150),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(23),
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color.fromRGBO(1, 165, 113, 1),
+                                  Colors.green.shade600,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.arrow_upward,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                "Enviar",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "Poppins",
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors
+                                    .transparent, // necesario para ver el gradiente
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            height: h(63),
+                            width: w(150),
+                            decoration: BoxDecoration(
+                              color: temaUser == "Oscuro" || temaUser == ""
+                                  ? Colors.transparent
+                                  : Color.fromRGBO(50, 68, 90, 1),
+                              borderRadius: BorderRadius.circular(23),
+                            ),
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                Vibration.vibrate(duration: 5);
+                                Navigator.push(
+                                  context,
+                                  PageTransition(
+                                    type: PageTransitionType.leftToRight,
+                                    child: recibirPage(),
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.arrow_downward,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                "Recibir",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "Poppins",
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: BorderSide(color: Colors.grey.shade600),
+                                padding: EdgeInsets.symmetric(vertical: w(15)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Enviar con código de vinculación
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 23),
+                    child: Container(
+                      height: h(53),
+                      width: w(400),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(33, 13, 243, 1),
+                            Colors.blue.shade600,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Colors.blueAccent,
+                          width: 0.3,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.account_balance_rounded,
+                            color: Colors.white,
+                            size: sp(15),
+                          ),
+                          SizedBox(width: w(8)),
+                          Text(
+                            "Ver mis alias",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: "Poppins",
+                              fontSize: sp(15),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Solicitar tarjeta
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Solicitá tu tarjeta",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Llega en 3-5 días hábiles sin costo de envío",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            "Solicitar tarjeta →",
+                            style: TextStyle(
+                              color: Colors.cyanAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Scroll horizontal - Funcionalidades principales
+                  SizedBox(
+                    height: 110,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Pago Grupal
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.teal.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.group, color: Colors.teal, size: 32),
+                              SizedBox(height: 12),
+                              Text(
+                                "Pago Grupal",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Usuarios Cercanos
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orangeAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.orangeAccent.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.location_on,
+                                color: Colors.orangeAccent,
+                                size: 32,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "Usuarios Cercanos",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Cuenta Compartida
+                        Container(
+                          width: 130,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.pinkAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.pinkAccent.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.people_alt,
+                                color: Colors.pinkAccent,
+                                size: 32,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "Cuenta Compartida",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Scroll horizontal - Funcionalidades secundarias
+                  SizedBox(
+                    height: 100,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Comprar USD
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Comprar USD",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Ahorros
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.savings,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Ahorros",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Préstamos Express
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.speed,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Préstamos Express",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Programar Pagos
+                        Container(
+                          width: 110,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.calendar_today,
+                                color: Colors.white70,
+                                size: 26,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Programar Pagos",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  //Fin Test UI
+
   Widget inicioPage() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -2240,37 +2815,8 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                       ? Padding(
                           padding: EdgeInsets.symmetric(horizontal: w(13)),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              /// 🔹 AVATAR CON GLOW SUAVE
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colorUI.withOpacity(0.35),
-                                      blurRadius: 12,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: w(23),
-                                  backgroundColor: colorUI,
-                                  child: Text(
-                                    iniciales,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: sp(15),
-                                      fontFamily: "PoppinsBold",
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(width: w(10)),
-
-                              /// 🔹 TEXTO
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -2278,7 +2824,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                     _saludoDelDia(),
                                     style: TextStyle(
                                       color: Colors.white70,
-                                      fontSize: sp(13),
+                                      fontSize: sp(17),
                                       fontFamily: "Poppins",
                                     ),
                                   ),
@@ -2287,12 +2833,24 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                     "$nameUser!",
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: sp(18),
+                                      fontSize: sp(22),
                                       fontFamily: "PoppinsBold",
-                                      height: 1.1,
+                                      height: 1.3,
                                     ),
                                   ),
                                 ],
+                              ),
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: colorUI,
+                                child: Text(
+                                  iniciales,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsBold",
+                                    fontSize: 15,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -2404,7 +2962,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                       borderRadius: BorderRadius.circular(20),
                       gradient: temaUser == "Oscuro" || temaUser == ""
                           ? LinearGradient(
-                              colors: [Color(0xFF1B2735), Color(0xFF0D1421)],
+                              colors: [Color(0xFF10131A), Color(0xFF161823)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -3006,43 +3564,42 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                         child: GestureDetector(
                           child: Container(
                             height: h(123),
-                            width: w(400),
+                            width: w(450),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(23),
                               gradient: temaUser == "Oscuro" || temaUser == ""
-                                  ? LinearGradient(
+                                  ? const LinearGradient(
                                       colors: [
-                                        Color(0xFF1B2735),
-                                        Color(0xFF0D1421),
+                                        Color(0xFF10131A),
+                                        Color(0xFF161823),
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     )
-                                  : LinearGradient(
-                                      colors: [
-                                        Color.fromRGBO(255, 255, 255, 1),
-                                        Color.fromRGBO(255, 255, 255, 1),
-                                      ],
+                                  : const LinearGradient(
+                                      colors: [Colors.white, Colors.white],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
-                              border: Border.all(
-                                color: Color.fromRGBO(1, 165, 113, 1),
-                                width: 1,
-                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.6),
-                                  blurRadius: 15,
-                                  offset: Offset(0, 8),
-                                  spreadRadius: 1,
+                                  color: Colors.black.withOpacity(
+                                    0.25,
+                                  ), // sombra oscura
+                                  blurRadius: 12,
+                                  offset: Offset(0, 6), // desplaza hacia abajo
+                                ),
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 20,
+                                  offset: Offset(0, 12),
                                 ),
                               ],
                             ),
                             child: Stack(
                               clipBehavior: Clip.hardEdge,
                               children: [
-                                // Línea animada neón
+                                /// ───────── NEÓN SUPERIOR ANIMADO
                                 Positioned(
                                   top: 0,
                                   left: 0,
@@ -3059,19 +3616,18 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                             animation:
                                                 _controllerNeonHorizontal,
                                             builder: (context, child) {
-                                              double translateX =
+                                              final translateX =
                                                   (_controllerNeonHorizontal
                                                           .value *
-                                                      (width +
-                                                          width * w(0.8))) -
-                                                  width * w(0.8);
+                                                      (width + width * 0.8)) -
+                                                  width * 0.8;
                                               return Transform.translate(
                                                 offset: Offset(translateX, 0),
                                                 child: child,
                                               );
                                             },
                                             child: Container(
-                                              width: width * w(0.5),
+                                              width: width * 0.5,
                                               height: h(5),
                                               decoration: BoxDecoration(
                                                 gradient: LinearGradient(
@@ -3080,13 +3636,11 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                                       0.0,
                                                     ),
                                                     Colors.greenAccent
-                                                        .withOpacity(0.8),
+                                                        .withOpacity(0.85),
                                                     Colors.green.withOpacity(
                                                       0.0,
                                                     ),
                                                   ],
-                                                  begin: Alignment.centerLeft,
-                                                  end: Alignment.centerRight,
                                                 ),
                                               ),
                                             ),
@@ -3096,11 +3650,12 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                     ),
                                   ),
                                 ),
-                                // Patrones de tarjetas animadas
+
+                                /// ───────── PATRÓN ANIMADO DE TARJETAS
                                 Opacity(
                                   opacity: 0.3,
                                   child: AnimatedBuilder(
-                                    animation: _controller,
+                                    animation: _controllerTarjetas,
                                     builder: (context, child) {
                                       return CustomPaint(
                                         size: Size.infinite,
@@ -3112,245 +3667,282 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                                     },
                                   ),
                                 ),
+
+                                /// ───────── CONTENIDO
                                 Padding(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: w(23),
-                                    vertical: h(23),
+                                    horizontal: w(8),
+                                    vertical: h(18),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
+                                  child: Row(
                                     children: [
-                                      /// ───── TÍTULO
-                                      animacionInicialCreada
-                                          ? Text(
-                                              "Solicitar mi tarjeta",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: sp(18),
-                                                fontFamily: "PoppinsBold",
-                                              ),
-                                            )
-                                          : AnimatedBuilder(
-                                              animation: _controllerInicial2,
-                                              builder: (context, child) {
-                                                final anim = CurvedAnimation(
-                                                  parent: _controllerInicial2,
-                                                  curve: const Interval(
-                                                    0.0,
-                                                    0.35,
-                                                    curve: Curves.easeOut,
-                                                  ),
-                                                );
-                                                return Opacity(
-                                                  opacity: anim.value,
-                                                  child: Transform.translate(
-                                                    offset: Offset(
-                                                      0,
-                                                      20 * (1 - anim.value),
-                                                    ),
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                              child: Text(
-                                                "Solicitar mi tarjeta",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: sp(18),
-                                                  fontFamily: "PoppinsBold",
-                                                ),
-                                              ),
+                                      /// IMAGEN TARJETA
+                                      Container(
+                                        height: h(93),
+                                        width: w(93),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            13,
+                                          ),
+                                          image: const DecorationImage(
+                                            image: AssetImage(
+                                              "assets/imgTarjetaSolicitar.png",
                                             ),
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
 
-                                      SizedBox(height: h(6)),
+                                      SizedBox(width: w(10)),
 
-                                      /// ───── SUBTÍTULO
-                                      animacionInicialCreada
-                                          ? RichText(
-                                              text: TextSpan(
-                                                style: TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: sp(11.3),
-                                                  fontFamily: "Poppins",
-                                                  height: 1.3,
-                                                ),
-                                                children: [
-                                                  const TextSpan(
-                                                    text: "Obtene tu tarjeta ",
-                                                  ),
-                                                  TextSpan(
-                                                    text: "QX",
-                                                    style: TextStyle(
-                                                      color:
-                                                          const Color.fromRGBO(
-                                                            1,
-                                                            165,
-                                                            113,
-                                                            1,
-                                                          ), // verde QX
-                                                      fontFamily: "PoppinsBold",
-                                                    ),
-                                                  ),
-                                                  const TextSpan(
-                                                    text: " fisica y digital ",
-                                                  ),
-                                                  TextSpan(
-                                                    text: "¡100% Gratis!",
-                                                    style: const TextStyle(
-                                                      color: Colors
-                                                          .white, // blanco puro
-                                                      fontFamily: "PoppinsBold",
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : AnimatedBuilder(
-                                              animation: _controllerInicial2,
-                                              builder: (context, child) {
-                                                final anim = CurvedAnimation(
-                                                  parent: _controllerInicial2,
-                                                  curve: const Interval(
-                                                    0.25,
-                                                    0.6,
-                                                    curve: Curves.easeOut,
-                                                  ),
-                                                );
-                                                return Opacity(
-                                                  opacity: anim.value,
-                                                  child: Transform.translate(
-                                                    offset: Offset(
-                                                      0,
-                                                      15 * (1 - anim.value),
-                                                    ),
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                              child: RichText(
-                                                text: TextSpan(
-                                                  style: TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: sp(11.3),
-                                                    fontFamily: "Poppins",
-                                                    height: 1.3,
-                                                  ),
-                                                  children: [
-                                                    const TextSpan(
-                                                      text:
-                                                          "Obtene tu tarjeta ",
-                                                    ),
-                                                    TextSpan(
-                                                      text: "QX",
+                                      /// TEXTO
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            /// TÍTULO
+                                            animacionInicialCreada
+                                                ? RichText(
+                                                    text: TextSpan(
                                                       style: TextStyle(
+                                                        fontFamily:
+                                                            "PoppinsBold",
+                                                        fontSize: sp(13),
+                                                        color: Colors
+                                                            .white, // color por defecto
+                                                      ),
+                                                      children: [
+                                                        TextSpan(
+                                                          text:
+                                                              "Tu tarjeta Qore",
+                                                        ), // texto normal
+                                                        TextSpan(
+                                                          text: "X", // la X
+                                                          style: TextStyle(
+                                                            color:
+                                                                Color.fromRGBO(
+                                                                  1,
+                                                                  165,
+                                                                  113,
+                                                                  1,
+                                                                ), // verde
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial2,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial2,
+                                                        curve: const Interval(
+                                                          0.0,
+                                                          0.35,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            12 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        style: TextStyle(
+                                                          fontFamily:
+                                                              "PoppinsBold",
+                                                          fontSize: sp(13),
+                                                          color: Colors.white,
+                                                        ),
+                                                        children: [
+                                                          TextSpan(
+                                                            text:
+                                                                "Tu tarjeta Qore",
+                                                          ),
+                                                          TextSpan(
+                                                            text: "X",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Color.fromRGBO(
+                                                                    1,
+                                                                    165,
+                                                                    113,
+                                                                    1,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                            SizedBox(height: h(5)),
+
+                                            /// DESCRIPCIÓN
+                                            animacionInicialCreada
+                                                ? Text(
+                                                    "Pagá, comprá online y usá tu saldo en\ncualquier lugar.",
+                                                    style: TextStyle(
+                                                      fontFamily: "Poppins",
+                                                      fontSize: sp(13),
+                                                      height: 1.4,
+                                                      color: Colors.white
+                                                          .withOpacity(0.7),
+                                                    ),
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial2,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial2,
+                                                        curve: const Interval(
+                                                          0.25,
+                                                          0.6,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            10 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Text(
+                                                      "Pagá, comprá online y usá tu saldo en\ncualquier lugar.",
+                                                      style: TextStyle(
+                                                        fontFamily: "Poppins",
+                                                        fontSize: sp(13),
+                                                        height: 1.4,
+                                                        color: Colors.white
+                                                            .withOpacity(0.7),
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                            SizedBox(height: h(10)),
+
+                                            /// CTA
+                                            animacionInicialCreada
+                                                ? Row(
+                                                    children: [
+                                                      Text(
+                                                        "Solicitar mi tarjeta",
+                                                        style: TextStyle(
+                                                          fontFamily:
+                                                              "PoppinsBold",
+                                                          fontSize: sp(13),
+                                                          color:
+                                                              const Color.fromRGBO(
+                                                                1,
+                                                                165,
+                                                                113,
+                                                                1,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: w(6)),
+                                                      Icon(
+                                                        LucideIcons.arrowRight,
+                                                        size: sp(15),
                                                         color:
                                                             const Color.fromRGBO(
                                                               1,
                                                               165,
                                                               113,
                                                               1,
-                                                            ), // verde QX
-                                                        fontFamily:
-                                                            "PoppinsBold",
+                                                            ),
                                                       ),
+                                                    ],
+                                                  )
+                                                : AnimatedBuilder(
+                                                    animation:
+                                                        _controllerInicial2,
+                                                    builder: (context, child) {
+                                                      final anim = CurvedAnimation(
+                                                        parent:
+                                                            _controllerInicial2,
+                                                        curve: const Interval(
+                                                          0.6,
+                                                          1.0,
+                                                        ),
+                                                      );
+                                                      return Opacity(
+                                                        opacity: anim.value,
+                                                        child: Transform.translate(
+                                                          offset: Offset(
+                                                            0,
+                                                            8 *
+                                                                (1 -
+                                                                    anim.value),
+                                                          ),
+                                                          child: child,
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Solicitar mi tarjeta",
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                "PoppinsBold",
+                                                            fontSize: sp(13),
+                                                            color:
+                                                                const Color.fromRGBO(
+                                                                  1,
+                                                                  165,
+                                                                  113,
+                                                                  1,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: w(6)),
+                                                        Icon(
+                                                          LucideIcons
+                                                              .arrowRight,
+                                                          size: sp(15),
+                                                          color:
+                                                              const Color.fromRGBO(
+                                                                1,
+                                                                165,
+                                                                113,
+                                                                1,
+                                                              ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    const TextSpan(
-                                                      text:
-                                                          " fisica y digital ",
-                                                    ),
-                                                    TextSpan(
-                                                      text: "¡100% Gratis!",
-                                                      style: const TextStyle(
-                                                        color: Colors
-                                                            .white, // blanco puro
-                                                        fontFamily:
-                                                            "PoppinsBold",
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                      SizedBox(height: h(16)),
-
-                                      /// ───── CTA LINK
-                                      animacionInicialCreada
-                                          ? Text(
-                                              "Solicitar Tarjeta",
-                                              style: TextStyle(
-                                                color: const Color.fromRGBO(
-                                                  1,
-                                                  165,
-                                                  113,
-                                                  1,
-                                                ),
-                                                fontSize: sp(15),
-                                                fontFamily: "PoppinsBold",
-                                              ),
-                                            )
-                                          : AnimatedBuilder(
-                                              animation: _controllerInicial2,
-                                              builder: (context, child) {
-                                                final anim = CurvedAnimation(
-                                                  parent: _controllerInicial2,
-                                                  curve: const Interval(
-                                                    0.6,
-                                                    1.0,
-                                                    curve: Curves.easeOut,
                                                   ),
-                                                );
-                                                return Opacity(
-                                                  opacity: anim.value,
-                                                  child: Transform.translate(
-                                                    offset: Offset(
-                                                      0,
-                                                      12 * (1 - anim.value),
-                                                    ),
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                              child: Text(
-                                                "Solicitar tarjeta física →",
-                                                style: TextStyle(
-                                                  color: const Color.fromRGBO(
-                                                    1,
-                                                    165,
-                                                    113,
-                                                    1,
-                                                  ),
-                                                  fontSize: sp(15),
-                                                  fontFamily: "PoppinsBold",
-                                                ),
-                                              ),
-                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
-                                  ),
-                                ),
-
-                                // ←───── NUEVO: ícono circular en esquina superior derecha
-                                Positioned(
-                                  top: h(12),
-                                  right: w(12),
-                                  child: Container(
-                                    padding: EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.08),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.chevron_right_rounded,
-                                      color: Colors.white,
-                                      size: sp(20),
-                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
+
                           onTap: () {
                             Vibration.vibrate(duration: 5);
                             Navigator.push(
@@ -12545,7 +13137,7 @@ class _MoneyCounterState extends State<MoneyCounter> {
       return Text(
         "\$·····",
         style: TextStyle(
-          fontSize: 32,
+          fontSize: 33,
           color: tema == "Oscuro" || tema == "" ? Colors.white : Colors.black,
           fontFamily: "PoppinsBold",
         ),

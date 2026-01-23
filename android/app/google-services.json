@@ -27,6 +27,25 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:395322066644:android:2894a51f75b7457c205d41",
+        "android_client_info": {
+          "package_name": "com.example.bluetoothhh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaUXGvo9BL4_yyILHa_rey73sbNE0zpbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:395322066644:android:cb21b3915602bb9c205d41",
         "android_client_info": {
           "package_name": "com.example.wifi_arduino"

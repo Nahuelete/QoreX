@@ -4,6 +4,7 @@ import 'package:bluetooth/UI/splashScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -205,78 +206,70 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     double sp(double v) =>
         v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
 
-    return Stack(
-      children: [
-        // 🔹 Contenido principal
-        SafeArea(
-          child: Container(
-            width: screenWidth,
-            height: screenHeight,
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.center, // centra horizontalmente
-              children: [
-                SizedBox(
-                  height: h(200),
-                ), // 🔹 distancia desde arriba (ajustá a gusto)
-                Center(
-                  child: Image.asset(
-                    "assets/logoApp.png",
-                    height: h(83),
-                    width: w(83),
-                  ),
-                ),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: w(400)),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "Qore",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: "PoppinsBold",
-                              fontSize: sp(38),
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                          TextSpan(
-                            text: "X",
-                            style: TextStyle(
-                              color: Color(0xFF01A571),
-                              fontFamily: "PoppinsBold",
-                              fontSize: sp(38),
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: h(5)),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: w(300)),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      "Tu dinero, siempre con vos.",
-                      style: TextStyle(
-                        color: Colors.white60,
-                        fontFamily: "PoppinsBold",
-                        fontSize: sp(20),
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+    return SafeArea(
+      child: Container(
+        width: screenWidth,
+        height: screenHeight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Image.asset(
+                "assets/logoApp.png",
+                height: h(83),
+                width: w(83),
+              ),
             ),
-          ),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: w(400)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "Qore",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "PoppinsBold",
+                          fontSize: sp(38),
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "X",
+                        style: TextStyle(
+                          color: Color(0xFF01A571),
+                          fontFamily: "PoppinsBold",
+                          fontSize: sp(38),
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: h(5)),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: w(300)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "Tu dinero, siempre con vos.",
+                  style: TextStyle(
+                    color: Colors.white60,
+                    fontFamily: "PoppinsBold",
+                    fontSize: sp(20),
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

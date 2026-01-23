@@ -14,6 +14,7 @@ import 'package:bluetooth/main.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -1361,8 +1362,10 @@ class _registrarsePageState extends State<registrarsePage>
 
     // ✅ Código correcto
     if (code == codeUser) {
-      avanzarPaso();
-      Vibration.vibrate(duration: 5);
+      Future.delayed(Duration(seconds: 1), () {
+        avanzarPaso();
+        Vibration.vibrate(duration: 5);
+      });
 
       Future.delayed(const Duration(seconds: 3), () {
         _focusNombre = FocusNode();
@@ -2042,6 +2045,18 @@ class _registrarsePageState extends State<registrarsePage>
         });
   }
 
+  Future<void> guardarTokenFCM() async {
+    final messaging = FirebaseMessaging.instance;
+
+    final token = await messaging.getToken();
+
+    if (token == null) return;
+
+    await FirebaseFirestore.instance.collection("Usuarios").doc(uidUser).set({
+      "fcmToken": token,
+    }, SetOptions(merge: true));
+  }
+
   String hashClave(String clave) {
     return BCrypt.hashpw(clave, BCrypt.gensalt());
   }
@@ -2120,6 +2135,8 @@ class _registrarsePageState extends State<registrarsePage>
         "Estado": "Habilitado",
         "Color": colorUser,
       });
+
+      await guardarTokenFCM();
 
       await enviarNotificacionRegistrado();
 
@@ -2679,7 +2696,7 @@ class _registrarsePageState extends State<registrarsePage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(3, 5, 25, 1), Color.fromRGBO(13, 20, 40, 1)],
+          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
         ),
       ),
       child: Scaffold(
@@ -3918,7 +3935,7 @@ class _registrarsePageState extends State<registrarsePage>
               autocorrect: false,
               enableSuggestions: false,
               autofillHints: null,
-              cursorColor: const Color.fromRGBO(1, 165, 113, 1),
+              cursorColor: Color.fromRGBO(1, 165, 113, 1),
               style: TextStyle(
                 fontSize: sp(15),
                 fontFamily: "Poppins",
@@ -4964,7 +4981,7 @@ class _registrarsePageState extends State<registrarsePage>
               autofocus: true,
               keyboardType: TextInputType.number,
               inputFormatters: [FechaNacimientoFormatter()],
-              cursorColor: const Color.fromRGBO(1, 165, 113, 1),
+              cursorColor: Color.fromRGBO(1, 165, 113, 1),
               style: TextStyle(
                 fontSize: sp(15),
                 fontFamily: "Poppins",
@@ -5259,7 +5276,7 @@ class _registrarsePageState extends State<registrarsePage>
                 TelefonoFormatter(),
               ],
               autofocus: true,
-              cursorColor: const Color.fromRGBO(1, 165, 113, 1),
+              cursorColor: Color.fromRGBO(1, 165, 113, 1),
               style: TextStyle(
                 fontSize: sp(15),
                 fontFamily: "Poppins",
@@ -6421,7 +6438,7 @@ class _registrarsePageState extends State<registrarsePage>
                     Expanded(
                       child: TextField(
                         controller: _controllerAlias,
-                        cursorColor: Colors.white,
+                        cursorColor: Color.fromRGBO(1, 165, 113, 1),
                         style: TextStyle(
                           fontSize: sp(15),
                           fontFamily: "Poppins",
@@ -8276,7 +8293,7 @@ class _registrarsePageState extends State<registrarsePage>
                                   focusNode: _focusEmailTutor,
                                   autofocus: true,
                                   keyboardType: TextInputType.emailAddress,
-                                  cursorColor: Colors.white,
+                                  cursorColor: Color.fromRGBO(1, 165, 113, 1),
                                   style: TextStyle(
                                     fontSize: sp(15),
                                     fontFamily: "Poppins",

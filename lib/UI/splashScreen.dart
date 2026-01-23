@@ -8,6 +8,7 @@ import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/registroUI.dart';
 import 'package:bluetooth/UI/registrarse.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
@@ -21,7 +22,7 @@ class Splashscreen extends StatefulWidget {
 }
 
 class _SplashscreenState extends State<Splashscreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
 
   late AnimationController _controllerSlide;
@@ -128,37 +129,6 @@ class _SplashscreenState extends State<Splashscreen>
       );
       Vibration.vibrate(duration: 5);
     });
-
-    /*Redireccion Vieja
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.of(context).pushAndRemoveUntil(
-        PageTransition(
-          type: PageTransitionType
-              .rightToLeft, // 🔹 animación de derecha a izquierda
-          duration: const Duration(milliseconds: 430), // velocidad
-          reverseDuration: const Duration(milliseconds: 300),
-          child: estado == ""
-              ? ingresoPage() //presentacionPage()
-              : estado == "email"
-              ? verificacionEmailPage()
-              : estado == "dni"
-              ? escanearDniPage()
-              : estado == "face"
-              ? escaneoFacialPage()
-              : estado == "finalizado"
-              ? verificacionCompletadaPage()
-              : estado == "No Existe"
-              ? (user != null
-                    ? (recordarme ? ingresoBiometriaPage() : registroPage())
-                    : registroPage())
-              : registroPage(),
-        ),
-        (Route<dynamic> route) => false,
-      );
-      Vibration.vibrate(duration: 5);
-    });
-
-    //Fin Redireccion Vieja */
   }
 
   Future<void> _inicializar() async {
@@ -166,12 +136,61 @@ class _SplashscreenState extends State<Splashscreen>
     if (!mounted) return;
     await verificarUsuario();
     if (!mounted) return;
+    await _initFCM();
+    if (!mounted) return;
     await redireccionarUsuario();
   }
+
+  //Background
+  Future<void> _initFCM() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // 1️⃣ Pedir permisos
+      await messaging.requestPermission();
+
+      // 2️⃣ Escuchar cuando el token esté listo
+      FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) return;
+
+        await FirebaseFirestore.instance
+            .collection("Usuarios")
+            .doc(user.uid)
+            .set({"fcmToken": token}, SetOptions(merge: true));
+
+        print("FCM token guardado correctamente (refresh)");
+      });
+
+      // 3️⃣ Intentar obtener token inicial (puede fallar)
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      try {
+        final token = await messaging.getToken();
+        if (token != null) {
+          await FirebaseFirestore.instance
+              .collection("Usuarios")
+              .doc(user.uid)
+              .set({"fcmToken": token}, SetOptions(merge: true));
+
+          print("FCM token guardado correctamente (inicial)");
+        }
+      } catch (_) {
+        // 🔕 APNS aún no disponible → onTokenRefresh lo va a capturar
+        print("APNS aún no listo, esperando refresh...");
+      }
+    } catch (e) {
+      print("Error inicializando FCM: $e");
+    }
+  }
+  //Fin Background
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
 
     _inicializar();
 
@@ -262,10 +281,7 @@ class _SplashscreenState extends State<Splashscreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color.fromRGBO(3, 5, 25, 1),
-                Color.fromRGBO(13, 20, 40, 1),
-              ],
+              colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
             ),
           ),
         ),

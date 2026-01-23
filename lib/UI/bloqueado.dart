@@ -1,5 +1,10 @@
 // ignore_for_file: use_key_in_widget_constructors, camel_case_types, unused_import, unused_element, deprecated_member_use, avoid_print, unused_field, use_build_context_synchronously, curly_braces_in_flow_control_structures, prefer_interpolation_to_compose_strings, unused_local_variable, unnecessary_import
 
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_route.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:bluetooth/UI/iniciarSesion.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
@@ -11,11 +16,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
@@ -44,10 +51,20 @@ class _bloqueadoPageState extends State<bloqueadoPage>
   //Steps
   int currentStep = 1;
 
+  //Controller
+  final TextEditingController _controllerCodeEmail = TextEditingController();
+  final TextEditingController _controllerMensaje = TextEditingController();
+
   //Cargando
   bool cargando = false;
   bool cargandoCambiar = false;
   bool cargandoMismo = false;
+  bool cargandoVolver = false;
+  bool cargandoAyuda = false;
+
+  //Focus
+  FocusNode? _focusCode;
+  FocusNode? _focusContacto;
 
   Future<void> leerShared() async {
     final prefs = await SharedPreferences.getInstance();
@@ -389,6 +406,140 @@ class _bloqueadoPageState extends State<bloqueadoPage>
     }
   }
 
+  //Verificar Por Email
+  String code = "";
+  bool emailReenviado = false;
+
+  Future<void> generarCodigo() async {
+    final random = Random.secure();
+
+    setState(() {
+      code = (10000 + random.nextInt(90000)).toString();
+    });
+  }
+
+  Future<int> sendEmailCode() async {
+    await generarCodigo();
+
+    final url = Uri.parse("https://api.emailjs.com/api/v1.0/email/send");
+
+    const serviceId = "service_z3hbbeh";
+    const templateId = "template_p29hdhe";
+    const userId = "bc4FkZberPqwpjovF";
+
+    final response = await http.post(
+      url,
+      headers: {"origin": "http:localhost", "Content-Type": "application/json"},
+      body: json.encode({
+        "service_id": serviceId,
+        "template_id": templateId,
+        "user_id": userId,
+        "template_params": {"codigo": code, "sender_email": emailUser},
+      }),
+    );
+
+    return response.statusCode;
+  }
+
+  void verificarCodeEmail() {
+    final codeIngresado = _controllerCodeEmail.text.trim();
+
+    // ✅ Código correcto
+    if (code == codeIngresado) {
+      Future.delayed(Duration(seconds: 1), () {
+        Vibration.vibrate(duration: 5);
+        setState(() {
+          currentStep = 5;
+        });
+      });
+
+      return;
+    }
+
+    // ❌ Código incorrecto
+    Vibration.vibrate(duration: 50);
+    showFlushbar(context, "Código incorrecto");
+
+    setState(() {
+      _focusCode?.requestFocus();
+      _controllerCodeEmail.clear();
+    });
+  }
+
+  //Contactar Soporte
+  String tituloGenerado = "";
+
+  Future<void> generarTituloIA() async {
+    final texto = _controllerMensaje.text.trim();
+    if (texto.length < 10) return;
+
+    setState(() {
+      cargando = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://api.openai.com/v1/chat/completions"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization":
+              "Bearer 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",
+        },
+        body: jsonEncode({
+          "model": "gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content":
+                  "Generá un título corto y claro (máx 5 palabras) para el problema del usuario. Sin comillas.",
+            },
+            {"role": "user", "content": texto},
+          ],
+          "temperature": 0.4,
+          "max_tokens": 20,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final titulo = data["choices"][0]["message"]["content"];
+
+        setState(() {
+          tituloGenerado = titulo.trim();
+        });
+      } else {
+        debugPrint("Error IA: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error IA: $e");
+    } finally {
+      setState(() {
+        cargando = false;
+      });
+    }
+  }
+
+  Future<void> enviarReporte() async {
+    String codeReporte = "";
+
+    final random = Random.secure();
+
+    setState(() {
+      codeReporte = (10000 + random.nextInt(90000)).toString();
+    });
+
+    FirebaseFirestore.instance
+        .collection("ReportesBloqueados")
+        .doc(codeReporte)
+        .set({
+          "De": "$nombreUser $apellidoUser",
+          "Uid De": uidUser,
+          "Problema": _controllerMensaje.text,
+          "Titulo": tituloGenerado,
+          "Codigo": codeReporte,
+        });
+  }
+
   //Cambiar Clave
   final TextEditingController _controllerNuevaClave = TextEditingController();
 
@@ -509,6 +660,47 @@ class _bloqueadoPageState extends State<bloqueadoPage>
     }
   }
 
+  void showFlushbar(BuildContext context, String message) {
+    Flushbar(
+      maxWidth: 350,
+      isDismissible: false,
+      flushbarStyle: FlushbarStyle.FLOATING,
+      mainButton: SizedBox.shrink(),
+      flushbarPosition: FlushbarPosition.TOP,
+      margin: EdgeInsets.all(8),
+      borderRadius: BorderRadius.circular(13),
+      backgroundGradient: LinearGradient(
+        colors: [Colors.red, Colors.redAccent],
+      ),
+      icon: Icon(LucideIcons.xCircle, color: Colors.white),
+      duration: Duration(seconds: 3),
+      messageText: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            message,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontFamily: "Poppins",
+            ),
+          ),
+          SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              10,
+            ), // respeta el borde redondeado
+            child: LinearProgressIndicator(
+              minHeight: 6,
+              backgroundColor: Colors.white24,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ],
+      ),
+    ).show(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -624,7 +816,11 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ),
                 );
               },
-              child: currentStep == 1
+              child: currentStep == -1
+                  ? verificarEmailCodigo(key: const ValueKey('verificar email'))
+                  : currentStep == 0
+                  ? noPuedoUsarFaceId(key: const ValueKey('no face id'))
+                  : currentStep == 1
                   ? cuentaBloqueada(key: const ValueKey('bloqueado'))
                   : currentStep == 2
                   ? escanearDniBloqueo(key: const ValueKey('escanear dni'))
@@ -640,6 +836,22 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ? avisoClaveCambiada(key: const ValueKey('clave cambiada'))
                   : currentStep == 8
                   ? verificacionExitosa(key: const ValueKey('desbloqueado'))
+                  : currentStep == 9
+                  ? necesitoAyuda(key: const ValueKey('ayuda'))
+                  : currentStep == 10
+                  ? problemasIdentidad(
+                      key: const ValueKey('problemas indentidad'),
+                    )
+                  : currentStep == 11
+                  ? seguridadActividadSospechosa(
+                      key: const ValueKey('actividad sospechosa'),
+                    )
+                  : currentStep == 12
+                  ? contactarSoporte(key: const ValueKey('contactar soporte'))
+                  : currentStep == 13
+                  ? contactoSoporteEnviado(
+                      key: const ValueKey('soporte enviado'),
+                    )
                   : Container(),
             ),
           ],
@@ -941,20 +1153,40 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ),
                 ),
                 child: Center(
-                  child: Text(
-                    "Necesito ayuda",
-                    style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      fontSize: sp(14),
-                      color: temaUser == "Oscuro"
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.black.withOpacity(0.8),
-                    ),
-                  ),
+                  child: !cargandoAyuda
+                      ? Text(
+                          "Necesito ayuda",
+                          style: TextStyle(
+                            fontFamily: "PoppinsMedium",
+                            fontSize: sp(14),
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.8)
+                                : Colors.black.withOpacity(0.8),
+                          ),
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
                 ),
               ),
               onTap: () {
                 Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargandoAyuda = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  setState(() {
+                    currentStep = 9;
+                    cargandoAyuda = false;
+                  });
+                });
               },
             ),
           ),
@@ -1486,9 +1718,6 @@ class _bloqueadoPageState extends State<bloqueadoPage>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w(40)),
             child: GestureDetector(
-              onTap: () {
-                Vibration.vibrate(duration: 5);
-              },
               child: Container(
                 height: h(50),
                 decoration: BoxDecoration(
@@ -1503,18 +1732,41 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ),
                 ),
                 child: Center(
-                  child: Text(
-                    "No puedo usar Face ID",
-                    style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      fontSize: sp(14),
-                      color: temaUser == "Oscuro"
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.black.withOpacity(0.8),
-                    ),
-                  ),
+                  child: !cargando
+                      ? Text(
+                          "No puedo usar Face ID",
+                          style: TextStyle(
+                            fontFamily: "PoppinsMedium",
+                            fontSize: sp(14),
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.8)
+                                : Colors.black.withOpacity(0.8),
+                          ),
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
                 ),
               ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargando = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  setState(() {
+                    currentStep = 0;
+                    cargando = false;
+                  });
+                });
+              },
             ),
           ),
 
@@ -1865,21 +2117,6 @@ class _bloqueadoPageState extends State<bloqueadoPage>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w(40)),
             child: GestureDetector(
-              onTap: () {
-                Vibration.vibrate(duration: 5);
-
-                setState(() {
-                  cargando = true;
-                });
-
-                Future.delayed(Duration(milliseconds: 1500), () {
-                  desbloquearCuenta();
-
-                  setState(() {
-                    cargando = false;
-                  });
-                });
-              },
               child: Container(
                 height: h(58),
                 decoration: BoxDecoration(
@@ -1911,10 +2148,590 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                         ),
                 ),
               ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargando = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  desbloquearCuenta();
+
+                  setState(() {
+                    cargando = false;
+                  });
+                });
+              },
             ),
           ),
 
           SizedBox(height: h(33)),
+        ],
+      ),
+    );
+  }
+
+  //No Face ID
+  Widget noPuedoUsarFaceId({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SafeArea(
+      key: key,
+      child: Column(
+        children: [
+          SizedBox(height: h(48)),
+
+          /// PASO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.userPlus,
+                  size: sp(15),
+                  color: Colors.white.withOpacity(0.45),
+                ),
+                SizedBox(width: w(6)),
+                Text(
+                  "Desbloquear cuenta",
+                  style: TextStyle(
+                    fontSize: sp(12),
+                    fontFamily: "Poppins",
+                    color: Colors.white.withOpacity(0.45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h(23)),
+
+          /// TEXTO PASO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.mail,
+                  size: sp(15),
+                  color: Colors.white.withOpacity(0.45),
+                ),
+                SizedBox(width: w(5)),
+                Text(
+                  "Paso 2 de 2",
+                  style: TextStyle(
+                    fontSize: sp(13),
+                    fontFamily: "Poppins",
+                    color: Colors.white.withOpacity(0.45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h(10)),
+
+          /// INDICADOR DE PASOS
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: List.generate(2, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(right: w(8)),
+                  child: Container(
+                    width: w(33),
+                    height: h(5),
+                    decoration: BoxDecoration(
+                      color: index < 2
+                          ? const Color.fromRGBO(1, 165, 113, 1)
+                          : Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          SizedBox(height: h(33)),
+
+          /// ICONO EMAIL
+          Container(
+            height: h(120),
+            width: h(120),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(1, 165, 113, 0.12),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.mailCheck,
+                size: sp(46),
+                color: const Color.fromRGBO(1, 165, 113, 1),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(30)),
+
+          /// TITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Verificación por email",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: sp(22),
+                color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(14)),
+
+          /// TEXTO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(43)),
+            child: Text(
+              "Te enviaremos un código de seguridad al email asociado a tu cuenta "
+              "para confirmar tu identidad y desbloquear el acceso.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(14),
+                height: 1.5,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.65),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(26)),
+
+          /// INFO EMAIL
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Container(
+              padding: EdgeInsets.all(w(16)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.mail,
+                    size: sp(18),
+                    color: const Color.fromRGBO(1, 165, 113, 1),
+                  ),
+                  SizedBox(width: w(12)),
+                  Expanded(
+                    child: Text(
+                      emailUser,
+                      style: TextStyle(
+                        fontFamily: "PoppinsBold",
+                        fontSize: sp(14),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Spacer(),
+
+          /// BOTÓN EMAIL
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(55),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color.fromRGBO(1, 165, 113, 1),
+                      Color.fromRGBO(0, 190, 130, 1),
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: !cargando
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.send,
+                              color: Colors.white,
+                              size: sp(18),
+                            ),
+                            SizedBox(width: w(10)),
+                            Text(
+                              "Enviar código por email",
+                              style: TextStyle(
+                                fontFamily: "PoppinsBold",
+                                fontSize: sp(16),
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargando = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  sendEmailCode();
+
+                  setState(() {
+                    currentStep = -1;
+                    _focusCode = FocusNode();
+                    cargando = false;
+                  });
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(15)),
+
+          /// VOLVER A FACE ID
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(50),
+                decoration: BoxDecoration(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.04)
+                      : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.12),
+                  ),
+                ),
+                child: Center(
+                  child: !cargandoVolver
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.scanFace,
+                              size: sp(16),
+                              color: temaUser == "Oscuro"
+                                  ? Colors.white.withOpacity(0.8)
+                                  : Colors.black.withOpacity(0.8),
+                            ),
+                            SizedBox(width: w(8)),
+                            Text(
+                              "Volver a Face ID",
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: sp(14),
+                                color: temaUser == "Oscuro"
+                                    ? Colors.white.withOpacity(0.8)
+                                    : Colors.black.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargandoVolver = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  setState(() {
+                    _focusCode = FocusNode();
+                    currentStep = 3;
+                    cargandoVolver = false;
+                  });
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(33)),
+        ],
+      ),
+    );
+  }
+
+  //Verificar Email
+  Widget verificarEmailCodigo({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double width) => width / 430 * screenWidth;
+    double h(double height) => height / 932 * screenHeight;
+    double sp(double size) =>
+        size / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SafeArea(
+      key: key,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: h(40)),
+
+          /// PASO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.mailCheck,
+                  size: sp(14),
+                  color: Colors.white.withOpacity(0.45),
+                ),
+                SizedBox(width: w(6)),
+                Text(
+                  "Verificación de email",
+                  style: TextStyle(
+                    fontSize: sp(12),
+                    fontFamily: "Poppins",
+                    color: Colors.white.withOpacity(0.45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: h(8)),
+
+          /// Email
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              emailUser,
+              style: TextStyle(
+                fontSize: sp(10),
+                fontFamily: "Poppins",
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(48)),
+
+          /// TITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Ingresá el código",
+              style: TextStyle(
+                fontSize: sp(24),
+                fontFamily: "PoppinsBold",
+                color: Colors.white,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(12)),
+
+          /// SUBTITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Te enviamos un código de 5 dígitos a tu email para verificar tu cuenta.",
+              style: TextStyle(
+                fontSize: sp(14),
+                fontFamily: "Poppins",
+                color: Colors.white.withOpacity(0.55),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(33)),
+
+          /// INPUT CODIGO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: PinCodeTextField(
+              appContext: context,
+              controller: _controllerCodeEmail,
+              autoDisposeControllers: false,
+              length: 5,
+              focusNode: _focusCode,
+              autoFocus: true,
+              keyboardType: TextInputType.number,
+              animationType: AnimationType.scale,
+              cursorColor: Colors.white,
+              textStyle: TextStyle(
+                fontSize: sp(20),
+                fontFamily: "PoppinsBold",
+                color: Colors.white,
+              ),
+              pinTheme: PinTheme(
+                shape: PinCodeFieldShape.box,
+                borderRadius: BorderRadius.circular(14),
+                fieldHeight: h(56),
+                fieldWidth: w(52),
+                activeColor: const Color.fromRGBO(1, 165, 113, 1),
+                selectedColor: Colors.white.withOpacity(0.5),
+                inactiveColor: Colors.white.withOpacity(0.2),
+                activeFillColor: Colors.white.withOpacity(0.05),
+                selectedFillColor: Colors.white.withOpacity(0.05),
+                inactiveFillColor: Colors.white.withOpacity(0.03),
+              ),
+              enableActiveFill: true,
+              animationDuration: const Duration(milliseconds: 300),
+              onChanged: (value) {},
+              onCompleted: (value) {
+                verificarCodeEmail();
+              },
+            ),
+          ),
+
+          SizedBox(height: h(32)),
+
+          /// REENVIAR
+          Center(
+            child: Container(
+              height: h(43),
+              width: w(300),
+              color: Colors.transparent,
+              child: GestureDetector(
+                child: Center(
+                  child: cargando
+                      ? SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        )
+                      : !emailReenviado
+                      ? RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: sp(10),
+                              fontFamily: "Poppins",
+                              color: const Color.fromRGBO(1, 165, 113, 1),
+                            ),
+                            children: const [
+                              TextSpan(text: "¿No recibiste el código? "),
+                              TextSpan(
+                                text: "Reenviar",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Text(
+                          "Código reenviado",
+                          style: TextStyle(
+                            fontSize: sp(13),
+                            fontFamily: "Poppins",
+                            color: const Color.fromRGBO(1, 165, 113, 1),
+                          ),
+                        ),
+                ),
+                onTap: () async {
+                  if (!emailReenviado) {
+                    Vibration.vibrate(duration: 5);
+                    setState(() {
+                      cargando = true;
+                    });
+
+                    await sendEmailCode();
+                    Future.delayed(Duration(milliseconds: 1500), () {
+                      setState(() {
+                        emailReenviado = true;
+                        cargando = false;
+                      });
+                      Vibration.vibrate(duration: 5);
+                    });
+
+                    Future.delayed(Duration(seconds: 15), () {
+                      setState(() {
+                        emailReenviado = false;
+                      });
+                      Vibration.vibrate(duration: 3);
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(24)),
+
+          /// INFO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  LucideIcons.info,
+                  size: sp(16),
+                  color: Colors.white.withOpacity(0.4),
+                ),
+                SizedBox(width: w(10)),
+                Expanded(
+                  child: Text(
+                    "Revisá también la carpeta de spam o correo no deseado.",
+                    style: TextStyle(
+                      fontSize: sp(13),
+                      fontFamily: "Poppins",
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -2640,10 +3457,6 @@ class _bloqueadoPageState extends State<bloqueadoPage>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w(40)),
             child: GestureDetector(
-              onTap: () {
-                Vibration.vibrate(duration: 8);
-                solicitarBiometria();
-              },
               child: Container(
                 height: h(56),
                 decoration: BoxDecoration(
@@ -2666,6 +3479,10 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ),
                 ),
               ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+                solicitarBiometria();
+              },
             ),
           ),
 
@@ -2675,10 +3492,372 @@ class _bloqueadoPageState extends State<bloqueadoPage>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w(40)),
             child: GestureDetector(
+              child: Container(
+                height: h(50),
+                decoration: BoxDecoration(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.04)
+                      : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.12),
+                  ),
+                ),
+                child: Center(
+                  child: !cargando
+                      ? Text(
+                          "Usar otra forma de verificación",
+                          style: TextStyle(
+                            fontFamily: "PoppinsMedium",
+                            fontSize: sp(14),
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.8)
+                                : Colors.black.withOpacity(0.8),
+                          ),
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
+                ),
+              ),
               onTap: () {
                 Vibration.vibrate(duration: 5);
-                // navegar a validación alternativa
+
+                setState(() {
+                  cargando = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  setState(() {
+                    currentStep = 0;
+                    cargando = false;
+                  });
+                });
               },
+            ),
+          ),
+
+          SizedBox(height: h(36)),
+        ],
+      ),
+    );
+  }
+
+  //Ayuda
+  Widget necesitoAyuda({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SafeArea(
+      key: key,
+      child: Column(
+        children: [
+          SizedBox(height: h(50)),
+
+          /// ICONO PRINCIPAL
+          Container(
+            height: h(120),
+            width: h(120),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(1, 165, 113, 0.14),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.helpCircle,
+                size: sp(48),
+                color: const Color.fromRGBO(1, 165, 113, 1),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(30)),
+
+          /// TITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "¿Necesitás ayuda?",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: sp(24),
+                color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(14)),
+
+          /// DESCRIPCIÓN
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(44)),
+            child: Text(
+              "Elegí una opción para resolver tu problema de forma rápida y segura. Estamos para ayudarte.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(14.5),
+                height: 1.55,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.65),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(36)),
+
+          /// OPCIONES
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(32)),
+            child: Column(
+              children: [
+                /// OPCIÓN 1
+                GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.all(w(18)),
+                    decoration: BoxDecoration(
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.black.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.12)
+                            : Colors.black.withOpacity(0.12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          height: w(48),
+                          width: w(48),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.08),
+                          ),
+                          child: Icon(
+                            LucideIcons.userCheck,
+                            size: sp(20),
+                            color: const Color.fromRGBO(1, 165, 113, 1),
+                          ),
+                        ),
+                        SizedBox(width: w(14)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Verificación de identidad",
+                                style: TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: sp(15),
+                                  color: temaUser == "Oscuro"
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: h(6)),
+                              Text(
+                                "Problemas para validar tu identidad o completar la verificación.",
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: sp(13),
+                                  height: 1.4,
+                                  color: temaUser == "Oscuro"
+                                      ? Colors.white.withOpacity(0.6)
+                                      : Colors.black.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          LucideIcons.chevronRight,
+                          size: sp(18),
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  onTap: () {
+                    Vibration.vibrate(duration: 5);
+                    setState(() {
+                      currentStep = 10;
+                    });
+                  },
+                ),
+
+                SizedBox(height: h(15)),
+
+                /// OPCIÓN 2
+                GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.all(w(18)),
+                    decoration: BoxDecoration(
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.black.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.12)
+                            : Colors.black.withOpacity(0.12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          height: w(48),
+                          width: w(48),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.08),
+                          ),
+                          child: Icon(
+                            LucideIcons.shieldAlert,
+                            size: sp(20),
+                            color: const Color.fromRGBO(1, 165, 113, 1),
+                          ),
+                        ),
+                        SizedBox(width: w(13)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Seguridad de la cuenta",
+                                style: TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: sp(15),
+                                  color: temaUser == "Oscuro"
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: h(5)),
+                              Text(
+                                "Actividad sospechosa o accesos no reconocidos.",
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontSize: sp(13),
+                                  height: 1.4,
+                                  color: temaUser == "Oscuro"
+                                      ? Colors.white.withOpacity(0.6)
+                                      : Colors.black.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          LucideIcons.chevronRight,
+                          size: sp(18),
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  onTap: () {
+                    Vibration.vibrate(duration: 5);
+                    setState(() {
+                      currentStep = 11;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          Spacer(),
+
+          /// CONTACTO SOPORTE
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(56),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color.fromRGBO(33, 13, 243, 1),
+                      Color.fromRGBO(78, 58, 255, 1),
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: !cargando
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.messageCircle,
+                              size: sp(18),
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: w(10)),
+                            Text(
+                              "Contactar soporte",
+                              style: TextStyle(
+                                fontFamily: "PoppinsBold",
+                                fontSize: sp(16),
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
+                      : SizedBox(
+                          height: h(23),
+                          width: w(23),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 1,
+                          ),
+                        ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  cargando = true;
+                });
+
+                Future.delayed(Duration(milliseconds: 1500), () {
+                  setState(() {
+                    currentStep = 12;
+                    _focusContacto = FocusNode();
+                    cargando = false;
+                  });
+
+                  Future.delayed(Duration(milliseconds: 300), () {
+                    _focusContacto?.requestFocus();
+                  });
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(23)),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
               child: Container(
                 height: h(50),
                 decoration: BoxDecoration(
@@ -2694,7 +3873,7 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                 ),
                 child: Center(
                   child: Text(
-                    "Usar otra forma de verificación",
+                    "Volver",
                     style: TextStyle(
                       fontFamily: "PoppinsMedium",
                       fontSize: sp(14),
@@ -2705,10 +3884,1125 @@ class _bloqueadoPageState extends State<bloqueadoPage>
                   ),
                 ),
               ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  currentStep = 1;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget problemasIdentidad({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: h(52)),
+
+          /// ICONO PRINCIPAL
+          Container(
+            height: h(92),
+            width: h(92),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(1, 165, 113, 0.14),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.userX,
+                size: sp(42),
+                color: const Color.fromRGBO(1, 165, 113, 1),
+              ),
             ),
           ),
 
-          SizedBox(height: h(36)),
+          SizedBox(height: h(26)),
+
+          /// TITULO
+          Text(
+            "Problemas de identidad",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "PoppinsBold",
+              fontSize: sp(20),
+              color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+            ),
+          ),
+
+          SizedBox(height: h(10)),
+
+          /// DESCRIPCIÓN
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(38)),
+            child: Text(
+              "Si la verificación no pudo completarse correctamente, revisá estos consejos antes de volver a intentarlo.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(14),
+                height: 1.45,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.65),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(34)),
+
+          /// TARJETA DE CONSEJOS
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(28)),
+            child: Container(
+              padding: EdgeInsets.all(w(22)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.045)
+                    : Colors.black.withOpacity(0.055),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// HEADER TARJETA
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.lightbulb,
+                        size: sp(18),
+                        color: const Color.fromRGBO(1, 165, 113, 1),
+                      ),
+                      SizedBox(width: w(10)),
+                      Text(
+                        "Consejos útiles",
+                        style: TextStyle(
+                          fontFamily: "PoppinsBold",
+                          fontSize: sp(15),
+                          color: temaUser == "Oscuro"
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(20)),
+
+                  /// TIP 1
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.scanFace,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Realizá la verificación en un lugar bien iluminado y mantené el rostro completamente visible.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// TIP 2
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.glasses,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Evitá usar gorras, lentes oscuros u objetos que cubran parte del rostro.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// TIP 3
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.mail,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Si estás esperando un código por email, revisá la bandeja de spam o correo no deseado.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// TIP 4
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.clock,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Esperá unos minutos antes de volver a intentarlo para evitar bloqueos temporales.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// TIP 5 DESTACADO
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.shieldCheck,
+                        size: sp(16),
+                        color: const Color.fromRGBO(1, 165, 113, 1),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Durante todo el proceso, tu cuenta permanece protegida y segura.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.85)
+                                : Colors.black.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Spacer(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(50),
+                decoration: BoxDecoration(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.04)
+                      : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.12),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Volver",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      fontSize: sp(14),
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.8)
+                          : Colors.black.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  currentStep = 9;
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(13)),
+        ],
+      ),
+    );
+  }
+
+  Widget seguridadActividadSospechosa({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: h(52)),
+
+          /// ICONO PRINCIPAL
+          Container(
+            height: h(96),
+            width: h(96),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.orange.withOpacity(0.16),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.shieldAlert,
+                size: sp(44),
+                color: Colors.orange,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(26)),
+
+          /// TITULO
+          Text(
+            "Seguridad de la cuenta",
+            style: TextStyle(
+              fontFamily: "PoppinsBold",
+              fontSize: sp(20),
+              color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+            ),
+          ),
+
+          SizedBox(height: h(8)),
+
+          /// SUBTITULO
+          Text(
+            "Actividad sospechosa o accesos no reconocidos",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "Poppins",
+              fontSize: sp(14),
+              height: 1.4,
+              color: temaUser == "Oscuro"
+                  ? Colors.white.withOpacity(0.65)
+                  : Colors.black.withOpacity(0.65),
+            ),
+          ),
+
+          SizedBox(height: h(33)),
+
+          /// TARJETA INFORMATIVA
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(28)),
+            child: Container(
+              padding: EdgeInsets.all(w(22)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.045)
+                    : Colors.black.withOpacity(0.055),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// HEADER
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.info,
+                        size: sp(18),
+                        color: Colors.orange,
+                      ),
+                      SizedBox(width: w(10)),
+                      Text(
+                        "¿Qué puede haber pasado?",
+                        style: TextStyle(
+                          fontFamily: "PoppinsBold",
+                          fontSize: sp(15),
+                          color: temaUser == "Oscuro"
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(20)),
+
+                  /// ITEM 1
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.mapPin,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Inicio de sesión desde una ubicación o dispositivo poco habitual.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// ITEM 2
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.key,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Múltiples intentos fallidos de ingreso a la cuenta.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(16)),
+
+                  /// ITEM 3
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        LucideIcons.wifiOff,
+                        size: sp(16),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.black.withOpacity(0.6),
+                      ),
+                      SizedBox(width: w(12)),
+                      Expanded(
+                        child: Text(
+                          "Accesos desde redes no seguras o conexiones inestables.",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(13.5),
+                            height: 1.45,
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.72)
+                                : Colors.black.withOpacity(0.72),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: h(24)),
+
+                  /// MENSAJE TRANQUILIZADOR
+                  Container(
+                    padding: EdgeInsets.all(w(14)),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          LucideIcons.shieldCheck,
+                          size: sp(16),
+                          color: Colors.orange,
+                        ),
+                        SizedBox(width: w(10)),
+                        Expanded(
+                          child: Text(
+                            "Para denunciar actividad sospechosa verifica tus ultimos ingresos a tu acuenta. Si no coinciden con ninguna de las propuestas anteriores, contactate a soporte.",
+                            style: TextStyle(
+                              fontFamily: "Poppins",
+                              fontSize: sp(13),
+                              height: 1.4,
+                              color: temaUser == "Oscuro"
+                                  ? Colors.white.withOpacity(0.85)
+                                  : Colors.black.withOpacity(0.85),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(28)),
+
+          /// PIE
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(42)),
+            child: Text(
+              "Estas medidas nos ayudan a proteger tu dinero y tu información personal.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(12.8),
+                height: 1.45,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.55)
+                    : Colors.black.withOpacity(0.55),
+              ),
+            ),
+          ),
+
+          Spacer(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(50),
+                decoration: BoxDecoration(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.04)
+                      : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.12),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Volver",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      fontSize: sp(14),
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.8)
+                          : Colors.black.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  currentStep = 9;
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(13)),
+        ],
+      ),
+    );
+  }
+
+  Widget contactarSoporte({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    TextEditingController mensajeController = TextEditingController();
+
+    return SafeArea(
+      child: Column(
+        children: [
+          SizedBox(height: h(23)),
+
+          /// ICONO
+          Container(
+            height: h(80),
+            width: h(80),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(1, 165, 113, 0.16),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.headphones,
+                size: sp(33),
+                color: const Color.fromRGBO(1, 165, 113, 1),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(13)),
+
+          /// TITULO
+          Text(
+            "Contactar a Soporte",
+            style: TextStyle(
+              fontFamily: "PoppinsBold",
+              fontSize: sp(20),
+              color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+            ),
+          ),
+
+          SizedBox(height: h(8)),
+
+          /// SUBTITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Contanos qué pasó y te ayudamos a resolverlo",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(14),
+                height: 1.45,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.65),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(23)),
+
+          /// CAMPO MENSAJE
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(28)),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: w(18), vertical: h(10)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// TITULO
+                  Text(
+                    "Mensaje",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      fontSize: sp(13),
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.black.withOpacity(0.7),
+                    ),
+                  ),
+
+                  SizedBox(height: h(8)),
+
+                  /// INPUT
+                  TextField(
+                    controller: _controllerMensaje,
+                    textCapitalization: TextCapitalization.sentences,
+                    maxLines: 3,
+                    maxLength: 150,
+                    focusNode: _focusContacto,
+                    autofocus: true,
+                    cursorColor: Color.fromRGBO(1, 165, 113, 1),
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: sp(13),
+                      color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+                    ),
+                    decoration: InputDecoration(
+                      hintText:
+                          "Describí brevemente el problema que estás teniendo…",
+                      hintStyle: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: sp(13),
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.4)
+                            : Colors.black.withOpacity(0.4),
+                      ),
+                      counterText: "",
+                      border: InputBorder.none,
+                    ),
+                  ),
+
+                  SizedBox(height: h(5)),
+
+                  /// DIVISOR
+                  Container(
+                    height: 1,
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.08)
+                        : Colors.black.withOpacity(0.08),
+                  ),
+
+                  SizedBox(height: h(10)),
+
+                  /// FILA ENVIAR
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Máx. 150 caracteres",
+                        style: TextStyle(
+                          fontFamily: "Poppins",
+                          fontSize: sp(11.5),
+                          color: temaUser == "Oscuro"
+                              ? Colors.white.withOpacity(0.45)
+                              : Colors.black.withOpacity(0.45),
+                        ),
+                      ),
+
+                      GestureDetector(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: w(15),
+                            vertical: h(8),
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color.fromRGBO(1, 165, 113, 1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: !cargando
+                              ? Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.send,
+                                      size: sp(13),
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: w(5)),
+                                    Text(
+                                      "Enviar",
+                                      style: TextStyle(
+                                        fontFamily: "PoppinsBold",
+                                        fontSize: sp(12.5),
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : SizedBox(
+                                  height: h(13),
+                                  width: w(13),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 1,
+                                  ),
+                                ),
+                        ),
+                        onTap: () {
+                          Vibration.vibrate(duration: 5);
+
+                          setState(() {
+                            cargando = true;
+                          });
+
+                          Future.delayed(
+                            Duration(milliseconds: 1500),
+                            () async {
+                              if (_controllerMensaje.text.length < 10) {
+                                showFlushbar(context, "Describí tu problema.");
+                                setState(() {
+                                  cargando = false;
+                                });
+                              } else {
+                                await generarTituloIA();
+                                //Enviar Eamil Usuario
+                                enviarReporte();
+                                setState(() {
+                                  _focusContacto?.unfocus();
+                                  currentStep = 13;
+                                  cargando = false;
+                                });
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Spacer(),
+
+          /// VOLVER ATRÁS
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(35)),
+            child: GestureDetector(
+              child: Container(
+                height: h(50),
+                decoration: BoxDecoration(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.black.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.14)
+                        : Colors.black.withOpacity(0.14),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Volver",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      fontSize: sp(14),
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.85)
+                          : Colors.black.withOpacity(0.85),
+                    ),
+                  ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+
+                setState(() {
+                  _focusContacto?.unfocus();
+                });
+
+                Future.delayed(Duration(milliseconds: 300), () {
+                  currentStep = 9;
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(13)),
+        ],
+      ),
+    );
+  }
+
+  Widget contactoSoporteEnviado({Key? key}) {
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    double w(double v) => v / 430 * screenWidth;
+    double h(double v) => v / 932 * screenHeight;
+    double sp(double v) =>
+        v / 430 * (screenWidth < screenHeight ? screenWidth : screenHeight);
+
+    /// CONCLUSIÓN SIMBÓLICA DEL MENSAJE
+    /// (esto luego puede venir del backend / IA)
+    final String resumenMensaje = "Problemas para verificar mi identidad";
+
+    return SafeArea(
+      key: key,
+      child: Column(
+        children: [
+          SizedBox(height: h(70)),
+
+          /// ICONO PRINCIPAL
+          Container(
+            height: h(130),
+            width: h(130),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(1, 165, 113, 0.15),
+            ),
+            child: Center(
+              child: Icon(
+                LucideIcons.checkCircle2,
+                size: sp(56),
+                color: const Color.fromRGBO(1, 165, 113, 1),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(32)),
+
+          /// TITULO
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Text(
+              "Solicitud enviada",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: sp(23),
+                color: temaUser == "Oscuro" ? Colors.white : Colors.black,
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(14)),
+
+          /// DESCRIPCIÓN
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(44)),
+            child: Text(
+              "Recibimos tu mensaje correctamente. "
+              "Nuestro equipo de soporte ya está revisando tu caso.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: sp(14.5),
+                height: 1.5,
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.65),
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(28)),
+
+          /// RESUMEN DEL MENSAJE
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Container(
+              padding: EdgeInsets.all(w(18)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    LucideIcons.messageCircle,
+                    size: sp(18),
+                    color: const Color.fromRGBO(1, 165, 113, 1),
+                  ),
+                  SizedBox(width: w(12)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Motivo del contacto",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: sp(12.5),
+                            color: temaUser == "Oscuro"
+                                ? Colors.white.withOpacity(0.55)
+                                : Colors.black.withOpacity(0.55),
+                          ),
+                        ),
+                        SizedBox(height: h(6)),
+                        Text(
+                          tituloGenerado,
+                          style: TextStyle(
+                            fontFamily: "PoppinsBold",
+                            fontSize: sp(14.5),
+                            color: temaUser == "Oscuro"
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: h(26)),
+
+          /// INFO TRANQUILIDAD
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: Container(
+              padding: EdgeInsets.all(w(16)),
+              decoration: BoxDecoration(
+                color: temaUser == "Oscuro"
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.12),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.clock,
+                    size: sp(18),
+                    color: const Color.fromRGBO(1, 165, 113, 1),
+                  ),
+                  SizedBox(width: w(12)),
+                  Expanded(
+                    child: Text(
+                      "Te responderemos a la brevedad por el medio asociado a tu cuenta. "
+                      "No necesitás realizar ninguna otra acción.",
+                      style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: sp(13.5),
+                        height: 1.45,
+                        color: temaUser == "Oscuro"
+                            ? Colors.white.withOpacity(0.75)
+                            : Colors.black.withOpacity(0.75),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Spacer(),
+
+          /// VOLVER
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: w(40)),
+            child: GestureDetector(
+              child: Container(
+                height: h(56),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  color: temaUser == "Oscuro"
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.black.withOpacity(0.08),
+                  border: Border.all(
+                    color: temaUser == "Oscuro"
+                        ? Colors.white.withOpacity(0.14)
+                        : Colors.black.withOpacity(0.14),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Volver",
+                    style: TextStyle(
+                      fontFamily: "PoppinsBold",
+                      fontSize: sp(15.5),
+                      color: temaUser == "Oscuro"
+                          ? Colors.white.withOpacity(0.85)
+                          : Colors.black.withOpacity(0.85),
+                    ),
+                  ),
+                ),
+              ),
+              onTap: () {
+                Vibration.vibrate(duration: 5);
+                setState(() {
+                  currentStep = 1;
+                });
+              },
+            ),
+          ),
+
+          SizedBox(height: h(32)),
         ],
       ),
     );
