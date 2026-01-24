@@ -1,15 +1,1 @@
-{
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
-    }
-  ]
-}
+{"functions":[{"source":"functions","codebase":"default","ignore":["node_modules",".git","firebase-debug.log","firebase-debug.*.log","*.local"]}],"flutter":{"platforms":{"android":{"default":{"projectId":"arduino-esp32-df250","appId":"1:395322066644:android:0ddb031c0e4b3e2f205d41","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"arduino-esp32-df250","appId":"1:395322066644:ios:ed2ee52dce731d49205d41","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"arduino-esp32-df250","appId":"1:395322066644:ios:622ecfcd1f349c1f205d41","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"arduino-esp32-df250","configurations":{"android":"1:395322066644:android:0ddb031c0e4b3e2f205d41","ios":"1:395322066644:ios:ed2ee52dce731d49205d41","macos":"1:395322066644:ios:622ecfcd1f349c1f205d41","web":"1:395322066644:web:0c5b192b74b63337205d41","windows":"1:395322066644:web:77ce9d15ddd49efa205d41"}}}}}}

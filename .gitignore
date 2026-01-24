@@ -15,12 +15,12 @@
 .vscode/
 
 # Android related
-/android/.gradle/
-/android/app/build/
-/android/app/debug/
-/android/app/profile/
-/android/app/release/
-/android/local.properties
+/android-viejo/.gradle/
+/android-viejo/app/build/
+/android-viejo/app/debug/
+/android-viejo/app/profile/
+/android-viejo/app/release/
+/android-viejo/local.properties
 
 # iOS related
 /ios/Pods/

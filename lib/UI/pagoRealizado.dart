@@ -11,7 +11,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart' show Lottie;
 import 'package:lucide_icons/lucide_icons.dart';
@@ -470,6 +469,7 @@ class _pagoRealizadoPageState extends State<pagoRealizadoPage>
     }
   }
 
+  /*
   Future<File?> _guardarTemporal(Uint8List image) async {
     final directory = await getTemporaryDirectory();
     final file = File('${directory.path}/captura.png');
@@ -502,6 +502,7 @@ class _pagoRealizadoPageState extends State<pagoRealizadoPage>
       });
     }
   }
+  */
 
   void showFlushbarError(BuildContext context, String message) {
     Flushbar(
@@ -1319,7 +1320,7 @@ class _pagoRealizadoPageState extends State<pagoRealizadoPage>
 
                 Future.delayed(Duration(milliseconds: 4500), () {
                   Vibration.vibrate(duration: 15);
-                  capturarYDescargar();
+                  //capturarYDescargar();
                   setState(() {
                     descargando = false;
                     descargado = true;

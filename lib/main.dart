@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, unused_local_variable, avoid_print, unused_element, unused_import, unnecessary_null_comparison, deprecated_member_use, sized_box_for_whitespace
 
 import 'package:bluetooth/UI/splashScreen.dart';
+import 'package:bluetooth/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -91,7 +92,9 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     print('Firebase inicializado correctamente');
     await verificarUsuario();
   } catch (e) {

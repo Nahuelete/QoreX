@@ -1,5 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, camel_case_types, file_names, unused_element, unused_field, avoid_print, use_build_context_synchronously, prefer_is_empty, deprecated_member_use, prefer_final_fields
 
+/*
 import 'dart:ui';
 
 import 'package:bluetooth/Pruebas%20Funciones/V1.0.0/avisoVerificacion.dart';
@@ -275,3 +276,4 @@ class _reconocimientoVozPageState extends State<reconocimientoVozPage>
     );
   }
 }
+*/

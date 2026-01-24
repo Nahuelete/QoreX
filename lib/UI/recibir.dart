@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -302,6 +301,7 @@ class _recibirPageState extends State<recibirPage>
     }
   }
 
+  /*
   Future<void> guardarQR() async {
     try {
       // Esperar a que el widget se haya renderizado
@@ -363,6 +363,7 @@ class _recibirPageState extends State<recibirPage>
       print('Error: $e');
     }
   }
+  */
 
   Future<void> generarTransaccion() async {
     Random random = Random();
