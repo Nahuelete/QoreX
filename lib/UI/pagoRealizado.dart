@@ -1,8 +1,7 @@
-// ignore_for_file: use_key_in_widget_constructors, camel_case_types, file_names, deprecated_member_use, unused_element_parameter, unrelated_type_equality_checks, unused_field, prefer_interpolation_to_compose_strings, avoid_print, unused_element, use_build_context_synchronously
+// ignore_for_file: unnecessary_import, use_key_in_widget_constructors, camel_case_types, file_names, deprecated_member_use, unused_element_parameter, unrelated_type_equality_checks, unused_field, prefer_interpolation_to_compose_strings, avoid_print, unused_element, use_build_context_synchronously
 
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:audioplayers/audioplayers.dart';

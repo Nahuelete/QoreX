@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -91,11 +92,12 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase inicializado correctamente');
     await verificarUsuario();
   } catch (e) {
     print('Error al inicializar Firebase: $e');
@@ -112,10 +114,9 @@ void main() async {
     ),
   );
 
-  Future.delayed(const Duration(milliseconds: 1), () {
-    FlutterNativeSplash.remove();
-  });
+  FlutterNativeSplash.remove();
 }
+
 
 /// ================== ROOT APP (OBSERVA LIFECYCLE) ==================
 class MyApp extends StatefulWidget {
@@ -153,44 +154,50 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: true,
       useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
-
+    
       builder: (context, child) {
-        return Stack(
-          children: [
-            // 🔹 TODA la app (Navigator incluido)
-            child!,
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: const TextScaler.linear(1), // 🔒 BLOQUEO REAL
+          ),
+          child: Stack(
+            children: [
+              // 🔹 TODA la app (Navigator incluido)
+              child!,
 
-            // 🔒 Overlay global cuando la app está inactiva
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 420),
-              curve: Curves.easeOutCubic,
-              left: 0,
-              right: 0,
-              top: appInactiva ? 0 : MediaQuery.of(context).size.height,
-              bottom: appInactiva ? 0 : -MediaQuery.of(context).size.height,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 260),
-                opacity: appInactiva ? 1 : 0,
-                child: AbsorbPointer(
-                  absorbing:
-                      appInactiva, // 🔒 bloquea interacción solo cuando está visible
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
+              // 🔒 Overlay global cuando la app está inactiva
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 420),
+                curve: Curves.easeOutCubic,
+                left: 0,
+                right: 0,
+                top: appInactiva ? 0 : MediaQuery.of(context).size.height,
+                bottom: appInactiva ? 0 : -MediaQuery.of(context).size.height,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 260),
+                  opacity: appInactiva ? 1 : 0,
+                  child: AbsorbPointer(
+                    absorbing:
+                        appInactiva, // 🔒 bloquea interacción solo cuando está visible
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF0F1117), Color(0xFF0F1117)],
+                        ),
                       ),
+                      child: focusPerdido(),
                     ),
-                    child: focusPerdido(),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
-
+    
       home: Splashscreen(),
     );
   }

@@ -29,6 +29,18 @@ android {
         versionName = flutter.versionName
     }
 
+    // ⭐ AGREGADO PARA ML KIT (Sintaxis Kotlin DSL)
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    
+    @Suppress("DEPRECATION")
+    aaptOptions {
+        noCompress("tflite")
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")

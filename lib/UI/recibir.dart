@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
-import 'dart:ui' as ui;
 import 'package:another_flushbar/flushbar.dart';
 import 'package:bluetooth/UI/menuPrincipal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

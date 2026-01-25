@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
@@ -163,6 +164,9 @@ class _registrarsePageState extends State<registrarsePage>
 
   /// Muestra u oculta la cámara
   bool _showCamera = true;
+
+  ///Verificar angulo valido
+  double? _lastValidAngle;
 
   /// Texto que indica qué debe hacer el usuario
   String stepText = "Mirá directamente a la cámara";
@@ -827,8 +831,7 @@ class _registrarsePageState extends State<registrarsePage>
   // =====================================================
   // ============== FUNCIONES ROSTRO =====================
   // =====================================================
-
-  Future<void> _playStepAudio(int step) async {
+Future<void> _playStepAudio(int step) async {
     String assetPath = "";
     switch (step) {
       case 0:
@@ -901,8 +904,8 @@ class _registrarsePageState extends State<registrarsePage>
   }
 
   //Control De Distancia
-  static const double _faceTooFarRatio = 0.25;
-  static const double _faceTooCloseRatio = 0.75;
+  static const double _faceTooFarRatio = 0.15; // Bajarlo
+  static const double _faceTooCloseRatio = 0.65; // Bajarlo también
   DateTime? _lastDistanceWarning;
   bool _wasOutOfRange = false;
   DateTime? _lastFaceSeen;
@@ -919,9 +922,11 @@ class _registrarsePageState extends State<registrarsePage>
 
     _cameraControllerFace = CameraController(
       frontCamera,
-      ResolutionPreset.low,
+      Platform.isAndroid ? ResolutionPreset.medium : ResolutionPreset.low,
       enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.bgra8888,
+      imageFormatGroup: Platform.isAndroid
+          ? ImageFormatGroup.yuv420
+          : ImageFormatGroup.bgra8888,
     );
 
     await _cameraControllerFace!.initialize();
@@ -946,27 +951,27 @@ class _registrarsePageState extends State<registrarsePage>
     });
   }
 
-  void _startImageStream() {
+
+void _startImageStream() {
     if (_cameraControllerFace == null) return;
     if (!_cameraControllerFace!.value.isInitialized) return;
 
-    // 🔒 Evitar iniciar el stream más de una vez
     if (_cameraControllerFace!.value.isStreamingImages ||
         _isFaceStreamStarted) {
       return;
     }
 
     _isFaceStreamStarted = true;
-
     DateTime? lastProcessed;
 
     _cameraControllerFace!.startImageStream((CameraImage image) async {
       if (!mounted || !_canDetectFaces || _isDetectingFace) return;
 
-      // ⏱️ Throttle
       if (lastProcessed != null &&
-          DateTime.now().difference(lastProcessed!) <
-              const Duration(milliseconds: 300)) {
+          DateTime.now()
+                  .difference(lastProcessed!)
+                  .compareTo(const Duration(milliseconds: 300)) <
+              0) {
         return;
       }
 
@@ -974,48 +979,118 @@ class _registrarsePageState extends State<registrarsePage>
       _isDetectingFace = true;
 
       try {
-        final inputImage = InputImage.fromBytes(
-          bytes: image.planes[0].bytes,
-          metadata: InputImageMetadata(
-            size: Size(image.width.toDouble(), image.height.toDouble()),
-            rotation: InputImageRotation.rotation0deg,
-            format: InputImageFormat.bgra8888,
-            bytesPerRow: image.planes[0].bytesPerRow,
-          ),
-        );
+        InputImage inputImage;
+
+        if (Platform.isAndroid) {
+          // ANDROID: Convertir YUV420 a NV21 correctamente
+          final int width = image.width;
+          final int height = image.height;
+          final int ySize = width * height;
+          final int uvSize = width * height ~/ 2;
+
+          final Uint8List nv21 = Uint8List(ySize + uvSize);
+
+          // Copiar plano Y
+          final yPlane = image.planes[0];
+          if (yPlane.bytesPerRow == width) {
+            nv21.setRange(0, ySize, yPlane.bytes);
+          } else {
+            for (int i = 0; i < height; i++) {
+              nv21.setRange(
+                i * width,
+                (i + 1) * width,
+                yPlane.bytes,
+                i * yPlane.bytesPerRow,
+              );
+            }
+          }
+
+          // Copiar planos UV intercalados (formato NV21)
+          final uPlane = image.planes[1];
+          final vPlane = image.planes[2];
+          int uvIndex = ySize;
+
+          for (int i = 0; i < height ~/ 2; i++) {
+            for (int j = 0; j < width ~/ 2; j++) {
+              final int uvOffset =
+                  i * uPlane.bytesPerRow + j * uPlane.bytesPerPixel!;
+              nv21[uvIndex++] = vPlane.bytes[uvOffset];
+              nv21[uvIndex++] = uPlane.bytes[uvOffset];
+            }
+          }
+
+          // Obtener rotación del sensor
+          final camera = _cameraControllerFace!.description;
+          final sensorOrientation = camera.sensorOrientation;
+
+          InputImageRotation rotation;
+          if (sensorOrientation == 0) {
+            rotation = InputImageRotation.rotation0deg;
+          } else if (sensorOrientation == 90) {
+            rotation = InputImageRotation.rotation90deg;
+          } else if (sensorOrientation == 180) {
+            rotation = InputImageRotation.rotation180deg;
+          } else {
+            rotation = InputImageRotation.rotation270deg;
+          }
+
+          inputImage = InputImage.fromBytes(
+            bytes: nv21,
+            metadata: InputImageMetadata(
+              size: Size(width.toDouble(), height.toDouble()),
+              rotation: rotation,
+              format: InputImageFormat.nv21,
+              bytesPerRow: width,
+            ),
+          );
+        } else {
+          // iOS: Combinar todos los planos BGRA8888
+          final WriteBuffer allBytes = WriteBuffer();
+          for (final Plane plane in image.planes) {
+            allBytes.putUint8List(plane.bytes);
+          }
+          final bytes = allBytes.done().buffer.asUint8List();
+
+          final rotation =
+              InputImageRotationValue.fromRawValue(
+                _cameraControllerFace!.description.sensorOrientation,
+              ) ??
+              InputImageRotation.rotation0deg;
+
+          inputImage = InputImage.fromBytes(
+            bytes: bytes,
+            metadata: InputImageMetadata(
+              size: Size(image.width.toDouble(), image.height.toDouble()),
+              rotation: rotation,
+              format: InputImageFormat.bgra8888,
+              bytesPerRow: image.planes.first.bytesPerRow,
+            ),
+          );
+        }
 
         final faces = await _faceDetector.processImage(inputImage);
         final now = DateTime.now();
 
-        // 🚨 MUY LEJOS → no hay rostro durante X tiempo
         if (faces.isEmpty) {
           _lastFaceSeen ??= now;
 
           if (now.difference(_lastFaceSeen!) > _maxNoFaceDuration) {
-            _wasOutOfRange = true;
             _handleFaceDistance(
               message: "Acercate un poco a la cámara",
               audioStep: 4,
             );
             _playStepAudio(7);
           }
-
           return;
         }
 
-        // ✅ Rostro detectado → reset de ausencia
         _lastFaceSeen = null;
-
         final face = faces.first;
         bool validStep = false;
 
-        // 📏 DISTANCIA ROSTRO-CÁMARA
-        final double faceWidth = face.boundingBox.width;
-        final double imageWidth = image.width.toDouble();
-        final double ratio = faceWidth / imageWidth;
+        final double ratio = face.boundingBox.width / image.width.toDouble();
 
         if (ratio < _faceTooFarRatio) {
-          _wasOutOfRange = true;
           _handleFaceDistance(
             message: "Acercate un poco a la cámara",
             audioStep: 4,
@@ -1025,7 +1100,6 @@ class _registrarsePageState extends State<registrarsePage>
         }
 
         if (ratio > _faceTooCloseRatio) {
-          _wasOutOfRange = true;
           _handleFaceDistance(
             message: "Alejate un poco de la cámara",
             audioStep: 4,
@@ -1034,31 +1108,33 @@ class _registrarsePageState extends State<registrarsePage>
           return;
         }
 
-        // ✅ Volvió a rango válido
-        if (_wasOutOfRange) {
-          _wasOutOfRange = false;
+        // 🔑 LÓGICA CORREGIDA: INVERTIDA PARA ANDROID
+        final double? angleY = face.headEulerAngleY;
 
-          if (mounted) {
-            setState(() {
-              stepText = _currentStep == 0
-                  ? "Mira directamente a la cámara"
-                  : _currentStep == 1
-                  ? "Gira la cabeza a la derecha"
-                  : "Gira la cabeza a la izquierda";
-            });
-          }
-        }
-
-        // 🧭 Validación de pasos
         if (_currentStep == 0) {
-          validStep =
-              face.headEulerAngleY != null && face.headEulerAngleY!.abs() < 10;
+          // Paso 0: Mirando al frente
+          validStep = angleY != null && angleY.abs() < 15;
+          if (validStep) {
+            _lastValidAngle = angleY;
+          }
         } else if (_currentStep == 1) {
-          validStep =
-              face.headEulerAngleY != null && face.headEulerAngleY! > 25;
+          // Paso 1: "Gira a la DERECHA" - En Android es NEGATIVO
+          if (Platform.isAndroid) {
+            validStep = angleY != null && angleY < -25;
+          } else {
+            validStep = angleY != null && angleY > 25;
+          }
+          
+          if (validStep) {
+            _lastValidAngle = angleY;
+          }
         } else if (_currentStep == 2) {
-          validStep =
-              face.headEulerAngleY != null && face.headEulerAngleY! < -25;
+          // Paso 2: "Gira a la IZQUIERDA" - En Android es POSITIVO
+          if (Platform.isAndroid) {
+            validStep = angleY != null && angleY > 25;
+          } else {
+            validStep = angleY != null && angleY < -25;
+          }
         }
 
         if (validStep && !_stepCompleted) {
@@ -1068,8 +1144,10 @@ class _registrarsePageState extends State<registrarsePage>
         if (_stepCompleted && !validStep) {
           _handleInvalidStep();
         }
-      } catch (e) {
+
+      } catch (e, s) {
         debugPrint("❌ Error procesando stream: $e");
+        debugPrint("Stack: $s");
       } finally {
         _isDetectingFace = false;
       }
