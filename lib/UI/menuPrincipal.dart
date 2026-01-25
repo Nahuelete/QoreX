@@ -720,8 +720,6 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
   Future<void> escaneoQR() async {
     final docRef = FirebaseFirestore.instance.collection("Recibos").doc(dataQR);
 
-    print(dataQR);
-
     // Listener principal del recibo
     _reciboSub = docRef.snapshots().listen((docSnapshot) async {
       if (!mounted) return;
@@ -745,7 +743,9 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
               if (docSnapshot.exists) {
                 final dataUser = docSnapshot.data()!;
                 setState(() {
-                  saldoUser = dataUser["Saldo"] ?? 0.0;
+                  saldoUser = (dataUser["Saldo"] != null)
+                      ? (dataUser["Saldo"] as num).toDouble()
+                      : 0.0;
                 });
 
                 // Detener scanner siempre antes de navegar
@@ -1416,7 +1416,7 @@ class _MenuPrincipalPageState extends State<MenuPrincipalPage>
                   if (index == 3) {
                     print("Perfil");
                     Vibration.vibrate(duration: 5);
-                    cerrarSesion();
+                    //cerrarSesion();
 
                     Future.delayed(Duration(seconds: 1), () {
                       Navigator.push(

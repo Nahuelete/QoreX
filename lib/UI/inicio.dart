@@ -312,7 +312,7 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                 ),
 
                 /// ================= TEXTO ACCIÓN =================
-                SizedBox(height: h(133)),
+                SizedBox(height: h(123)),
 
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: w(55)),
@@ -420,6 +420,8 @@ class _inicioPageState extends State<inicioPage> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
+
+                          SizedBox(height: h(8)),
                         ],
                       ),
                     ),

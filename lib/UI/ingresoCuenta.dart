@@ -1,6 +1,7 @@
 // ignore_for_file: camel_case_types, file_names, unused_field, prefer_final_fields, unused_import, prefer_interpolation_to_compose_strings, deprecated_member_use, avoid_print, unused_local_variable, use_build_context_synchronously, use_key_in_widget_constructors, unused_element, override_on_non_overriding_member, no_leading_underscores_for_local_identifiers, sized_box_for_whitespace
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bcrypt/bcrypt.dart';
 import 'package:bluetooth/UI/bloqueado.dart';
@@ -515,69 +516,52 @@ class _ingresoPageState extends State<ingresoPage>
   }
 
   Future<void> solicitarBiometria() async {
-    if (!cuentaBloqueada) {
-      setState(() {
-        currentStep = 0;
-        biometriaSolicitada = true;
-      });
+    if (cuentaBloqueada) return;
 
-      bool canCheck = await localAuth.canCheckBiometrics;
-      bool authenticated = false;
+    setState(() {
+      currentStep = 0;
+      biometriaSolicitada = true;
+    });
 
-      //Setear Estado
+    final auth = LocalAuthentication();
 
-      if (!canCheck) {
-        print('El dispositivo no soporta biometría');
-        setState(() {
-          faceIdUser = false;
-          biometriaSolicitada = false;
-          currentStep = 1;
-        });
-        return;
-      }
+    final bool supported = await auth.isDeviceSupported();
+    print("Device soportado: $supported");
 
-      try {
-        authenticated = await localAuth.authenticate(
-          localizedReason: 'Escanea tu huella o Face ID para iniciar sesión',
-          options: const AuthenticationOptions(
-            stickyAuth: false,
-            biometricOnly: true,
-          ),
-        );
-      } on PlatformException catch (e) {
-        print("Error de biometría: ${e.code}");
+    if (!supported) {
+      _fallarBiometria();
+      return;
+    }
 
-        setState(() {
-          currentStep = 1;
-          biometriaSolicitada = false;
-        });
+    try {
+      final bool authenticated = await auth.authenticate(
+        localizedReason: Platform.isIOS
+            ? 'Autenticá con Face ID'
+            : 'Confirmá tu identidad',
 
-        if (e.code == "NotEnrolled" ||
-            e.code == "LockedOut" ||
-            e.code == "PermanentlyLockedOut") {
-          return;
-        }
-
-        if (e.code == "Canceled") {
-          print("El usuario canceló la autenticación");
-          setState(() {
-            currentStep = 1;
-            biometriaSolicitada = false;
-          });
-          return;
-        }
-      }
+        options: const AuthenticationOptions(
+          biometricOnly: false,
+          stickyAuth: false,
+          useErrorDialogs: true,
+        ),
+      );
 
       if (authenticated) {
         iniciarSesionFaceID();
       } else {
-        print('Autenticación biométrica fallida');
-        setState(() {
-          currentStep = 1;
-          biometriaSolicitada = false;
-        });
+        _fallarBiometria();
       }
+    } on PlatformException catch (e) {
+      print('BiometricPrompt error: ${e.code}');
+      _fallarBiometria();
     }
+  }
+
+  void _fallarBiometria() {
+    setState(() {
+      biometriaSolicitada = false;
+      currentStep = 1;
+    });
   }
 
   @override
@@ -619,7 +603,7 @@ class _ingresoPageState extends State<ingresoPage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // 🔑 CLAVE
+    WidgetsBinding.instance.removeObserver(this);
     _shakeController.dispose();
     _focusClave?.dispose();
     super.dispose();
@@ -680,8 +664,8 @@ class _ingresoPageState extends State<ingresoPage>
                         temaUser == "Oscuro"
                             ? "assets/logoAppCompleto.png"
                             : "assets/logoAppCompletoNegro.png",
-                        height: h(100),
-                        width: w(100),
+                        height: h(83),
+                        width: w(83),
                       )
                     : null,
               ),
@@ -764,8 +748,8 @@ class _ingresoPageState extends State<ingresoPage>
 
             /// AVATAR
             Container(
-              height: h(88),
-              width: h(88),
+              height: h(83),
+              width: h(83),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: Color.fromRGBO(1, 165, 113, 0.15),
@@ -773,8 +757,8 @@ class _ingresoPageState extends State<ingresoPage>
               child: ClipOval(
                 child: avatarUser == ""
                     ? Container(
-                        width: w(88),
-                        height: w(88),
+                        width: w(83),
+                        height: w(83),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: colorUI,

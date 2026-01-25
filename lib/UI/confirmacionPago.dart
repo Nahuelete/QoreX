@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, camel_case_types, file_names, deprecated_member_use, prefer_interpolation_to_compose_strings, avoid_print, unnecessary_brace_in_string_interps, sized_box_for_whitespace, use_build_context_synchronously, unused_field, unused_local_variable, unrelated_type_equality_checks
+// ignore_for_file: use_key_in_widget_constructors, camel_case_types, file_names, deprecated_member_use, prefer_interpolation_to_compose_strings, avoid_print, unnecessary_brace_in_string_interps, sized_box_for_whitespace, use_build_context_synchronously, unused_field, unused_local_variable, unrelated_type_equality_checks, curly_braces_in_flow_control_structures
 
 import 'dart:async';
 import 'dart:math';
@@ -41,11 +41,10 @@ class _confirmacionPageState extends State<confirmacionPage>
 
   late AnimationController _controllerAnimPago;
 
-  final PageController _pageController = PageController(
-    viewportFraction: 0.90,
-    initialPage: 0,
-  );
+  PageController? _pageController;
+
   int _paginaActual = 0;
+  int _ultimaCantidadMetodos = 0;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -64,12 +63,15 @@ class _confirmacionPageState extends State<confirmacionPage>
   String nameUserExterno = "";
   String apellidoUserExterno = "";
   String avatarUserExterno = "";
+  String inicialesUserExterno = "";
   String uidUserExterno = "";
   String dniUserExterno = "";
   String metodo = "";
   String fecha = "";
   String hora = "";
   String tarjetaUser = "";
+  String colorUserExterno = "";
+  Color colorUI = Color.fromRGBO(1, 165, 113, 1);
   int codeQR = 0;
   double montoQR = 0.0;
   double saldoUser = 0.0;
@@ -203,7 +205,13 @@ class _confirmacionPageState extends State<confirmacionPage>
         apellidoUserExterno = dataEmisor["Apellido"] ?? "";
         avatarUserExterno = dataEmisor["Avatar"] ?? "";
         dniUserExterno = dataEmisor["Dni"] ?? "";
+        colorUserExterno = dataEmisor["Color"] ?? "";
         saldoUserExterno = (dataEmisor["Saldo"] as num?)?.toDouble() ?? 0.0;
+        inicialesUserExterno =
+            nameUserExterno.isNotEmpty && apellidoUserExterno.isNotEmpty
+            ? "${nameUserExterno[0]}${apellidoUserExterno[0]}".toUpperCase()
+            : "";
+        colorUI = obtenerColor(colorUserExterno);
       });
 
       // ================================
@@ -235,8 +243,10 @@ class _confirmacionPageState extends State<confirmacionPage>
       if (tarjetaUser != "No" && tarjetaUser != "Solicitada") {
         if (!metodos.contains("Tarjeta")) {
           metodos.add("Tarjeta");
-          obtenerTarjeta();
         }
+        obtenerTarjeta();
+      } else {
+        metodos.remove("Tarjeta");
       }
 
       // Extensiones
@@ -605,6 +615,21 @@ class _confirmacionPageState extends State<confirmacionPage>
     }
   }
 
+  Color obtenerColor(String color) {
+    switch (color) {
+      case "Verde":
+        return const Color.fromRGBO(1, 165, 113, 1);
+      case "Azul":
+        return const Color.fromRGBO(33, 13, 243, 1);
+      case "Naranja":
+        return const Color.fromRGBO(200, 90, 0, 1);
+      case "Violeta":
+        return const Color.fromRGBO(165, 53, 253, 1);
+      default:
+        return const Color.fromRGBO(1, 165, 113, 1);
+    }
+  }
+
   void showFlushbarError(BuildContext context, String message) {
     Flushbar(
       maxWidth: 350,
@@ -654,6 +679,8 @@ class _confirmacionPageState extends State<confirmacionPage>
 
     obtenerDatos();
 
+    _pageController = PageController(viewportFraction: 0.90, initialPage: 0);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -678,7 +705,7 @@ class _confirmacionPageState extends State<confirmacionPage>
     _controller.dispose();
     _controllerAnimPago.dispose();
     _scrollController.dispose();
-    _pageController.dispose();
+    _pageController?.dispose();
     _tarjetaSubscription?.cancel();
     _soliSub?.cancel();
     super.dispose();
@@ -703,6 +730,13 @@ class _confirmacionPageState extends State<confirmacionPage>
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value) ?? 0.0;
     return 0.0;
+  }
+
+  String safeLastDigits(String str, int length) {
+    String cleanStr = str.replaceAll(" ", ""); // quitar todos los espacios
+    if (cleanStr.isEmpty) return "0"; // al menos un dígito
+    if (length > cleanStr.length) length = cleanStr.length;
+    return cleanStr.substring(cleanStr.length - length);
   }
 
   @override
@@ -867,11 +901,42 @@ class _confirmacionPageState extends State<confirmacionPage>
           children: [
             SizedBox(height: h(33)),
             Center(
-              child: CircleAvatar(
-                radius: sp(33),
-                backgroundColor: Colors.blue,
-                child: Image.asset(avatarUserExterno),
-              ),
+              child: avatarUserExterno != ""
+                  ? CircleAvatar(
+                      radius: sp(33),
+                      backgroundColor: Colors.blue,
+                      child: Image.asset(avatarUserExterno),
+                    )
+                  : Container(
+                      height: h(73),
+                      width: h(73),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromRGBO(1, 165, 113, 0.15),
+                      ),
+                      child: ClipOval(
+                        child: avatarUser == ""
+                            ? Container(
+                                width: w(73),
+                                height: w(73),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: colorUI,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    inicialesUserExterno,
+                                    style: TextStyle(
+                                      fontSize: sp(25),
+                                      fontFamily: "PoppinsBold",
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Image.asset(avatarUser, fit: BoxFit.cover),
+                      ),
+                    ),
             ),
             SizedBox(height: h(23)),
             ConstrainedBox(
@@ -928,10 +993,11 @@ class _confirmacionPageState extends State<confirmacionPage>
                           ),
                         ),
                       ),
-                      Visibility(
-                        visible: (metodos.length > 1),
-                        child: SmoothPageIndicator(
-                          controller: _pageController,
+                      if (metodos.length > 1 &&
+                          _pageController != null &&
+                          _pageController!.hasClients)
+                        SmoothPageIndicator(
+                          controller: _pageController!,
                           count: metodos.length,
                           effect: SwapEffect(
                             activeDotColor: (_paginaActual == 0
@@ -945,7 +1011,6 @@ class _confirmacionPageState extends State<confirmacionPage>
                             spacing: sp(10),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   SizedBox(height: h(23)),
@@ -985,15 +1050,11 @@ class _confirmacionPageState extends State<confirmacionPage>
 
                                   final extensiones = snapExt.data!;
 
-                                  // ======================================================
                                   // RESET listas
-                                  // ======================================================
                                   datosMetodos.clear();
                                   List<Widget> metodosFinal = [];
 
-                                  // ======================================================
                                   // 1) FONDOS DE CUENTA
-                                  // ======================================================
                                   metodosFinal.add(fondosDeCuentaWidget());
                                   datosMetodos.add({
                                     "tipo": "cuenta",
@@ -1001,21 +1062,21 @@ class _confirmacionPageState extends State<confirmacionPage>
                                     "saldo": saldoUser,
                                   });
 
-                                  // ======================================================
                                   // 2) MI TARJETA
-                                  // ======================================================
-                                  metodosFinal.add(miTarjetaWidget());
-                                  datosMetodos.add({
-                                    "tipo": "tarjeta",
-                                    "verificacion": false,
-                                    "limite": limite,
-                                    "limiteGastado": limiteGastado,
-                                    "estado": estadoTarjetaUser,
-                                  });
+                                  if (numeroTarjetaUser.isNotEmpty &&
+                                      numeroTarjetaUser != "No" &&
+                                      numeroTarjetaUser != "Solicitada") {
+                                    metodosFinal.add(miTarjetaWidget());
+                                    datosMetodos.add({
+                                      "tipo": "tarjeta",
+                                      "verificacion": false,
+                                      "limite": limite,
+                                      "limiteGastado": limiteGastado,
+                                      "estado": estadoTarjetaUser,
+                                    });
+                                  }
 
-                                  // ======================================================
                                   // 3) EXTENSIONES
-                                  // ======================================================
                                   for (var ext in extensiones) {
                                     datosMetodos.add(ext);
                                     metodosFinal.add(
@@ -1023,64 +1084,119 @@ class _confirmacionPageState extends State<confirmacionPage>
                                     );
                                   }
 
-                                  // ======================================================
-                                  // 🔥 GENERAR PALABRAS (1 POR CADA MÉTODO)
-                                  // ======================================================
+                                  // GENERAR PALABRAS
                                   metodos = List.generate(
                                     metodosFinal.length,
                                     (i) => "metodo_$i",
                                   );
 
-                                  // ======================================================
-                                  // PAGEVIEW FINAL
-                                  // ======================================================
-                                  return SizedBox(
-                                    height: h(250),
-                                    child: PageView.builder(
-                                      controller: _pageController,
-                                      itemCount: metodosFinal.length,
-                                      onPageChanged: (index) {
-                                        Vibration.vibrate(duration: 5);
+                                  // 🔥 DETECCIÓN DE CAMBIO EN CANTIDAD DE MÉTODOS
+                                  final cantidadActual = metodosFinal.length;
+                                  final cambioEnCantidad =
+                                      cantidadActual != _ultimaCantidadMetodos;
 
-                                        setState(() {
-                                          _paginaActual = index;
+                                  if (cambioEnCantidad) {
+                                    _ultimaCantidadMetodos = cantidadActual;
 
-                                          tarjetaActual = datosMetodos[index];
-                                          necesitaVerificacion =
-                                              tarjetaActual["verificacion"] ??
-                                              false;
+                                    // Resetear página actual si está fuera de rango
+                                    if (_paginaActual >= cantidadActual) {
+                                      _paginaActual = 0;
+                                    }
 
-                                          // CONTROL EXTENSION ACTIVA
-                                          if (index < 2) {
-                                            extensionActiva = {
-                                              "uidOriginario": "NO_EXTENSION",
-                                              "tipo": "ninguno",
-                                            };
-                                          } else {
-                                            extensionActiva = tarjetaActual;
-                                          }
-
-                                          // SALDO EXTENSIONES
-                                          if (tarjetaActual["tipo"] ==
-                                              "extension") {
-                                            final saldo =
-                                                tarjetaActual["saldoOriginario"] ??
-                                                0;
-                                            sinSaldoExtension = saldo < montoQR;
-                                          } else {
-                                            sinSaldoExtension = false;
+                                    // 🔥 RECREAR PAGECONTROLLER cuando cambia la cantidad
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          if (mounted) {
+                                            _pageController?.dispose();
+                                            _pageController = PageController(
+                                              viewportFraction: 0.90,
+                                              initialPage: _paginaActual,
+                                            );
+                                            setState(() {});
                                           }
                                         });
-                                      },
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: w(10),
+                                  }
+
+                                  // Validación de seguridad adicional
+                                  if (_paginaActual < 0) {
+                                    _paginaActual = 0;
+                                  }
+                                  if (_paginaActual >= cantidadActual) {
+                                    _paginaActual = cantidadActual - 1;
+                                    if (_paginaActual < 0) _paginaActual = 0;
+                                  }
+
+                                  // PAGEVIEW FINAL
+                                  return SizedBox(
+                                    height: h(250),
+                                    child: _pageController == null
+                                        ? Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                        : PageView.builder(
+                                            controller: _pageController!,
+                                            itemCount: metodosFinal.length,
+                                            onPageChanged: (index) {
+                                              // 🔥 VALIDACIÓN CRÍTICA
+                                              if (index < 0 ||
+                                                  index >=
+                                                      datosMetodos.length) {
+                                                print(
+                                                  "⚠️ Índice inválido: $index (total: ${datosMetodos.length})",
+                                                );
+                                                return;
+                                              }
+
+                                              Vibration.vibrate(duration: 5);
+
+                                              setState(() {
+                                                _paginaActual = index;
+                                                tarjetaActual =
+                                                    datosMetodos[index];
+                                                necesitaVerificacion =
+                                                    tarjetaActual["verificacion"] ??
+                                                    false;
+
+                                                // CONTROL EXTENSION ACTIVA
+                                                if (index < 2) {
+                                                  extensionActiva = {
+                                                    "uidOriginario":
+                                                        "NO_EXTENSION",
+                                                    "tipo": "ninguno",
+                                                  };
+                                                } else {
+                                                  extensionActiva =
+                                                      tarjetaActual;
+                                                }
+
+                                                // SALDO EXTENSIONES
+                                                if (tarjetaActual["tipo"] ==
+                                                    "extension") {
+                                                  final saldo =
+                                                      tarjetaActual["saldoOriginario"] ??
+                                                      0;
+                                                  sinSaldoExtension =
+                                                      saldo < montoQR;
+                                                } else {
+                                                  sinSaldoExtension = false;
+                                                }
+                                              });
+                                            },
+                                            itemBuilder: (context, index) {
+                                              if (index >=
+                                                      metodosFinal.length ||
+                                                  index < 0) {
+                                                return const SizedBox.shrink();
+                                              }
+
+                                              return Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: w(10),
+                                                ),
+                                                child: metodosFinal[index],
+                                              );
+                                            },
                                           ),
-                                          child: metodosFinal[index],
-                                        );
-                                      },
-                                    ),
                                   );
                                 },
                               );
@@ -1816,7 +1932,7 @@ class _confirmacionPageState extends State<confirmacionPage>
     return GestureDetector(
       onTap: () {
         Vibration.vibrate(duration: 5);
-        _pageController.animateToPage(
+        _pageController?.animateToPage(
           0,
           duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -2008,7 +2124,7 @@ class _confirmacionPageState extends State<confirmacionPage>
         }
 
         // OK → navega
-        _pageController.animateToPage(
+        _pageController?.animateToPage(
           1,
           duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -2119,7 +2235,7 @@ class _confirmacionPageState extends State<confirmacionPage>
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      "**** **** **** ${numeroTarjetaUser.substring(numeroTarjetaUser.length - 5).trimRight().trimLeft()}",
+                      "**** **** **** ${safeLastDigits(numeroTarjetaUser, 4).trim()}",
                       style: TextStyle(
                         fontSize: sp(23),
                         color: Color(0xFF007BFF),
