@@ -1,6 +1,21 @@
-# QoreX
+<div align="center">
+  <img src="assets/logoApp.png" width="110" alt="Logo de QoreX" />
 
-**QoreX** es un prototipo de billetera digital desarrollado con **Flutter y Dart**, con especial atención al diseño de interfaz, las interacciones móviles y la integración con Firebase.
+  # QoreX
+
+  **Billetera digital · Prototipo de aplicación móvil**
+
+  Una experiencia financiera diseñada con **Flutter y Dart**, integrada con **Firebase**.
+
+  <p>
+    <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
+    <img src="https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white" alt="Dart" />
+    <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black" alt="Firebase" />
+    <img src="https://img.shields.io/badge/Estado-En%20desarrollo-424B54?style=flat-square" alt="En desarrollo" />
+  </p>
+</div>
+
+---
 
 > **Estado:** proyecto en desarrollo. No es un servicio financiero habilitado para operar con dinero real.
 
